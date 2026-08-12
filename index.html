@@ -19,11 +19,24 @@
   --surface-default:#ffffff;
   --surface-variant-subtle:#f9f9fc;
 
+  /* Semantic/Shadow/Elevation/Low */
+  --elev-low-1:#87878714;
+  --elev-low-2:#8787870f;
+  --elev-low-3:#87878705;
+  --elev-low-4:#87878703;
+  --shadow-elevation-low:
+      -1px   4px  8px 0 var(--elev-low-1),
+      -2px   9px 12px 0 var(--elev-low-2),
+      -12px 38px 24px 0 var(--elev-low-3),
+      -12px 40px 20px 0 var(--elev-low-4);
+
   /* outline / divider */
   --outline-static:#dee0e9;
-  --outline-default:#888b9a;        /* composer border — focused   */
-  --outline-disabled:#dee0e9;       /* composer border — default   */
+  --outline-default:#888b9a;        /* composer border — all states (XDS-5739) */
+  --outline-disabled:#888b9a;       /* composer border — default   */
   --outline-highlighted:#888b9a;    /* composer border — proximity */
+  --card-outline:#dee0e9;           /* Action/Secondary/Outline disabled */
+  --tile-outline:#dee0e9;           /* Outline/Static */
   --divider-default:#dee0e9;
   --secondary-outline-disabled:#dee0e9;
 
@@ -56,17 +69,17 @@
   --indigo-90:#dde1ff;
   --indigo-95:#efefff;
   --lavender-50:#7f76ec;
+  --primary-grad-start:#4069fe;     /* Gradient primary default */
+  --primary-grad-end:#1c4ee4;
 
-  --bg-gradient-start:#f9f9fc;
-  --bg-gradient-end:#fcfcff;
+  --bg-gradient-start:#f9f9fc;      /* Background/Base gradient start */
+  --bg-gradient-end:#fcfcff;        /* Background/Base gradient end   */
 
   /* radius */
   --radius-md:8px;
   --radius-lg:12px;
   --radius-full:9999px;
 
-  /* elevation */
-  --shadow-tile: 3.333px 1.667px 6.667px 0 var(--indigo-95);
 
   /* metrics */
   --sidenav-width:300px;
@@ -202,7 +215,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   overscroll-behavior:contain;
   display:flex;flex-direction:column;align-items:flex-start;
   gap:4px;
-  padding:12px 16px;
+  padding:8px 12px;
 }
 /* off-canvas scrim (mobile only) */
 .scrim{
@@ -228,7 +241,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 .nav-row-content{
   flex:1 1 0;min-width:0;
-  display:flex;align-items:center;gap:4px;
+  display:flex;align-items:center;gap:8px;
   padding:8px 4px;
   border-radius:var(--radius-lg);
   overflow:hidden;
@@ -238,7 +251,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .nav-row:hover .nav-row-content{background:#f4f5f9;}
 .nav-label{
   flex:1 1 0;min-width:0;
-  font-size:14px;font-weight:400;line-height:20px;letter-spacing:0;
+  font-size:12px;font-weight:400;line-height:16px;letter-spacing:0;
   color:inherit;text-align:left;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
@@ -259,7 +272,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .nav-group{width:100%;display:flex;flex-direction:column;gap:4px;}
 .nav-group-header{
   width:100%;
-  display:flex;align-items:center;gap:4px;
+  display:flex;align-items:center;gap:8px;
   padding:8px;
   border-radius:var(--radius-lg);
   overflow:hidden;
@@ -281,14 +294,14 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .nav-child{
   width:100%;
   display:flex;align-items:center;
-  padding:6px 8px 6px 12px;
+  padding:8px 4px 8px 12px;   /* 8 + 16 + 8 = 32 row height */
   border-radius:var(--radius-lg);
   transition:background-color .12s ease;
 }
 .nav-child:hover{background:#f4f5f9;}
 .nav-child span{
   flex:1 1 0;min-width:0;
-  font-size:14px;font-weight:400;line-height:20px;letter-spacing:0;
+  font-size:12px;font-weight:400;line-height:16px;letter-spacing:0;
   color:var(--on-secondary);text-align:left;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
@@ -321,11 +334,12 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   overscroll-behavior:contain;
   display:flex;
   flex-direction:column;
-  background:linear-gradient(180deg,
-      var(--bg-gradient-end) 0%,
-      var(--surface-default) 30%,
-      var(--surface-default) 55%,
-      var(--bg-gradient-start) 100%);
+  /* Gradient background default — radial, anchored bottom-left.
+     Figma: centre (-4, 883.5) in a 1140x881 frame, radii ~781 / ~894,
+     stops at 30.527% and 100%.                                       */
+  background:radial-gradient(ellipse 68.5% 101.5% at 0% 100%,
+      var(--bg-gradient-start) 30.53%,
+      var(--bg-gradient-end) 100%);
 }
 .content-inner{
   flex:1 0 auto;                      /* fills the viewport, then scrolls */
@@ -425,19 +439,21 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:16px;
+  /* the elevation lives on the row, not the individual cards */
   filter:
-    drop-shadow(-12px 40px 10px rgba(0,46,159,.01))
-    drop-shadow(-12px 38px 12px rgba(0,46,159,.02))
-    drop-shadow(-2px 9px 6px rgba(0,46,159,.06));
+    drop-shadow(-1px 4px 4px var(--elev-low-1))
+    drop-shadow(-2px 9px 6px var(--elev-low-2))
+    drop-shadow(-12px 38px 12px var(--elev-low-3))
+    drop-shadow(-12px 40px 10px var(--elev-low-4));
 }
 .card{
   min-width:0;
   background:var(--surface-default);
-  border:1px solid var(--secondary-outline-disabled);
+  border:1px solid var(--card-outline);
   border-radius:var(--radius-lg);
   display:flex;flex-direction:column;align-items:flex-start;
-  gap:2px;
-  padding:12px 16px;
+  gap:4px;                    /* 16 + 44 + 4 + 24 + 4 + 32 + 16 = 140 */
+  padding:16px 20px;
   text-align:left;
   transition:
     border-color .2s var(--ease-soft),
@@ -456,23 +472,24 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   transition-duration:.09s;
 }
 .card-tile{
-  width:48px;height:48px;flex:none;
+  width:44px;height:44px;flex:none;
   display:flex;align-items:center;justify-content:center;
   border-radius:var(--radius-md);
-  border:1px solid #f2f2f9;
-  background:var(--surface-default);
-  box-shadow:var(--shadow-tile);
-  color:var(--indigo-35);
+  border:1px solid var(--tile-outline);
+  background:transparent;
+  color:var(--primary-grad-start);
 }
+/* Gradient primary default, applied to the glyph itself */
+.card-tile .ico{fill:url(#grad-primary);}
 .card-title{
-  margin:0;padding-top:6px;
-  font-size:16px;font-weight:600;line-height:24px;letter-spacing:.2px;
-  color:var(--type-default);
+  margin:0;
+  font-size:16px;font-weight:600;line-height:24px;letter-spacing:0;
+  color:var(--on-secondary);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
 }
 .card-desc{
   margin:0;
-  font-size:14px;font-weight:400;line-height:20px;letter-spacing:0;
+  font-size:12px;font-weight:400;line-height:16px;letter-spacing:0;
   color:var(--type-muted);
 }
 
@@ -502,14 +519,11 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   border:1px solid var(--outline-disabled);
   border-radius:var(--radius-lg);
   display:flex;flex-direction:column;align-items:flex-start;
-  /* Figma's 3-layer stack, identical in all three states. This stays
-     STATIC: the offsets are large (40px down) against a small blur,
-     so translating it detaches the shadow's own rounded edge from the
-     box — visible as a doubled corner. Only the glow moves.          */
-  filter:
-    drop-shadow(-12px 40px 10px rgba(0,46,159,.01))
-    drop-shadow(-12px 38px 12px rgba(0,46,159,.02))
-    drop-shadow(-2px 9px 6px rgba(0,46,159,.06));
+  /* Semantic/Shadow/Elevation/Low — token radii, not the halved ones
+     the generated drop-shadow() emits. Stays STATIC: the offsets are
+     large against small blurs, so translating it detaches the shadow's
+     own rounded edge from the box. Only the glow moves.              */
+  box-shadow:var(--shadow-elevation-low);
   transition:border-color .32s var(--ease-soft);
 }
 /* proximity — border only, box stays put */
@@ -527,9 +541,10 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 .composer-input input{
   flex:1 1 0;min-width:0;
+  height:20px;
   border:0;outline:0;background:transparent;padding:0;
   font-family:inherit;
-  font-size:14px;font-weight:400;line-height:24px;letter-spacing:0;
+  font-size:14px;font-weight:400;line-height:20px;letter-spacing:0;
   color:var(--type-default);
 }
 .composer-input input::placeholder{color:var(--type-muted);opacity:1;}
@@ -537,9 +552,10 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .composer-footer{
   width:100%;
   display:flex;align-items:center;justify-content:space-between;
-  padding:16px;
+  padding:24px 16px 12px;   /* 16 + 20 + 24 + 40 + 12 = 112 */
 }
 .btn-array{display:flex;align-items:center;}
+.btn-array.left{gap:0;}     /* attach sits flush against Tools */
 .btn-array.right{gap:12px;}
 .attach-btn{
   width:32px;height:32px;
@@ -550,9 +566,9 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 .attach-btn:hover{background:#f2f3f7;}
 .tools-btn{
-  height:32px;padding:4px 8px;
+  height:32px;padding:4px 8px;   /* 8+24+36+24+8 = 100 */
   border-radius:var(--radius-lg);
-  display:flex;align-items:center;gap:4px;
+  display:flex;align-items:center;gap:0;
   color:var(--on-secondary);
   transition:background-color .12s ease;
 }
@@ -571,6 +587,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .round-btn:hover{background:#f2f3f7;}
 
 /* send button — disabled by default, "Gradient primary active" when focused */
+.send-btn .ico{width:20px;height:20px;}   /* Button/Medium/Icon size */
 .send-btn,.send-btn:hover{
   background:var(--primary-disabled);
   color:var(--on-primary-disabled);
@@ -762,6 +779,10 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 
 <!-- ============ inline icon sprite (Material Symbols, weight 400 outlined) ============ -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <linearGradient id="grad-primary" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4069fe"/>
+    <stop offset="1" stop-color="#1c4ee4"/>
+  </linearGradient>
   <symbol id="i-left-panel-close" viewBox="0 -960 960 960"><path d="M663-344v-272L527-480l136 136ZM180-120q-24.75 0-42.37-17.63Q120-155.25 120-180v-600q0-24.75 17.63-42.38Q155.25-840 180-840h600q24.75 0 42.38 17.62Q840-804.75 840-780v600q0 24.75-17.62 42.37Q804.75-120 780-120H180Zm147-60v-600H180v600h147Zm60 0h393v-600H387v600Zm-60 0H180h147Z"/></symbol>
   <symbol id="i-expand-more" viewBox="0 -960 960 960"><path d="M480-344 240-584l43-43 197 197 197-197 43 43-240 240Z"/></symbol>
   <symbol id="i-expand-less" viewBox="0 -960 960 960"><path d="M480-554 283-357l-43-43 240-240 240 240-43 43-197-197Z"/></symbol>
