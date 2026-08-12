@@ -37,6 +37,8 @@
   --outline-highlighted:#888b9a;    /* composer border — proximity */
   --card-outline:#dee0e9;           /* Action/Secondary/Outline disabled */
   --tile-outline:#dee0e9;           /* Outline/Static */
+  --secondary-hover:#eeeff5;        /* Action/Secondary/Hover  */
+  --secondary-active:#dee0e9;       /* Action/Secondary/Active */
   --divider-default:#dee0e9;
   --secondary-outline-disabled:#dee0e9;
 
@@ -292,6 +294,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   display:flex;flex-direction:column;align-items:flex-start;gap:4px;
 }
 .nav-child{
+  position:relative;
   width:100%;
   display:flex;align-items:center;
   padding:8px 4px 8px 12px;   /* 8 + 16 + 8 = 32 row height */
@@ -299,6 +302,18 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   transition:background-color .12s ease;
 }
 .nav-child:hover{background:#f4f5f9;}
+/* selected child row — the indicator sits on the divider line, 9px
+   left of the row (1px divider + 8px gap) */
+.nav-child.is-selected,
+.nav-child.is-selected:hover{background:var(--nav-selected-bg);}
+.nav-child.is-selected span{color:var(--nav-on-selected);}
+.nav-child.is-selected::before{
+  content:"";
+  position:absolute;
+  left:-9px;top:25%;bottom:25%;
+  width:2px;border-radius:24px;
+  background:var(--nav-indicator);
+}
 .nav-child span{
   flex:1 1 0;min-width:0;
   font-size:12px;font-weight:400;line-height:16px;letter-spacing:0;
@@ -610,10 +625,10 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .chatbox.has-text  .send-btn{color:var(--on-primary);cursor:pointer;}
 
 /* ---- suggestion chips (New chat view) --------------------------
-   Figma "Chip array": 980 x 36, centred, 8px gap.
-   Chip: bg Surface/Variant subtle, NO border, radius Lg, px 8,
-   icon 20px at 4px inset, label Inter 12/16, and the four-layer
-   Semantic/Shadow/Elevation/Low stack.                            */
+   Figma "Chip array" 980 x 36, centred, 8px gap.
+   Chip = Chip / Outline / Large / Default: white fill, 1px
+   Outline/Default border, full pill, 16px effective side padding
+   (8 root + 8 label), label Label/Lg 14/20, NO icon, NO shadow.   */
 .chip-row{
   display:none;
   position:relative;
@@ -630,39 +645,29 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  padding:0 8px;
-  border:0;
-  border-radius:var(--radius-lg);
-  background:var(--surface-variant-subtle);
+  padding:0 16px;
+  border:1px solid var(--outline-default);
+  border-radius:var(--radius-full);
+  background:var(--surface-default);
   color:var(--on-secondary);
   white-space:nowrap;
   cursor:pointer;
-  box-shadow:
-    -12px 40px 20px 0 rgba(135,135,135,.012),
-    -12px 38px 24px 0 rgba(135,135,135,.020),
-    -2px   9px 12px 0 rgba(135,135,135,.059),
-    -1px   4px  8px 0 rgba(135,135,135,.078);
   transition:
     background-color .16s var(--ease-soft),
-    box-shadow       .18s var(--ease-soft),
-    transform        .18s var(--ease-soft);
+    border-color     .16s var(--ease-soft),
+    box-shadow       .16s var(--ease-soft);
 }
-.chip .ico{width:20px;height:20px;margin-left:4px;}
 .chip .label{
-  padding:0 8px;
-  font-size:12px;font-weight:400;line-height:16px;letter-spacing:0;
+  font-size:14px;font-weight:400;line-height:20px;letter-spacing:0;
   color:var(--on-secondary);
 }
-.chip:hover{
-  background:#eeeff5;
-  transform:translateY(-1px);
-  box-shadow:
-    -12px 40px 20px 0 rgba(135,135,135,.016),
-    -12px 38px 24px 0 rgba(135,135,135,.026),
-    -2px   9px 12px 0 rgba(135,135,135,.072),
-    -1px   4px  8px 0 rgba(135,135,135,.10);
+.chip:hover{background:var(--secondary-hover);}
+.chip:active{background:var(--secondary-active);transition-duration:.08s;}
+/* Semantic/Shadow/Focus/Default — literal hexes, mode-independent */
+.chip:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 1px #ffffff, 0 0 0 4px #0b4cce;
 }
-.chip:active{background:#dee0e9;transform:translateY(0);transition-duration:.08s;}
 
 .disclaimer{
   margin:0;
@@ -680,16 +685,31 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 
 /* ============================================================
-   New chat view — no cards, chips under the composer, and the
-   welcome + composer group sits together above centre
-   (Figma: 201.5px above the block, 323px below -> ~1 : 1.6)
+   Centred views — the welcome + chatbox group sits as one block,
+   vertically centred. Figma XDS-5739 confirms exact centring:
+     New chat        block 261.5 -> 619.5 in 881  (261.5 / 261.5)
+     Incident Resp.  block 209.5 -> 671.5 in 881  (209.5 / 209.5)
    ============================================================ */
+.frame.mode-chat .stage,
+.frame.mode-incident .stage{flex:0 0 auto;padding:0;}
+.frame.mode-chat .chatbox,
+.frame.mode-incident .chatbox{margin-top:32px;}
+.frame.mode-chat .content-inner::before,
+.frame.mode-incident .content-inner::before{content:"";flex:1 0 0;}
+.frame.mode-chat .content-inner::after,
+.frame.mode-incident .content-inner::after{content:"";flex:1 0 0;}
+
+/* New chat: chips replace the cards */
 .frame.mode-chat .card-row{display:none;}
 .frame.mode-chat .chip-row{display:flex;}
-.frame.mode-chat .stage{flex:0 0 auto;padding:0;}
-.frame.mode-chat .chatbox{margin-top:32px;}
-.frame.mode-chat .content-inner::before{content:"";flex:1 0 0;}
-.frame.mode-chat .content-inner::after{content:"";flex:1.6 0 0;}
+
+/* Incident Response: the card row moves inside the chatbox, under the
+   composer. 112 + 24 + 140 + 24 + 16 = 316, matching the Figma node. */
+.frame.mode-incident .chip-row{display:none;}
+.frame.mode-incident .card-row{
+  position:relative;
+  z-index:1;              /* above the glow layer, like the chips */
+}
 
 /* ============================================================
    Responsive
@@ -801,8 +821,6 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   <symbol id="i-tune" viewBox="0 -960 960 960"><path d="M427-120v-225h60v83h353v60H487v82h-60Zm-307-82v-60h247v60H120Zm187-166v-82H120v-60h187v-84h60v226h-60Zm120-82v-60h413v60H427Zm166-165v-225h60v82h187v60H653v83h-60Zm-473-83v-60h413v60H120Z"/></symbol>
   <symbol id="i-mic" viewBox="0 -960 960 960"><path d="M408-453.92q-29-30.91-29-75.08v-251q0-41.67 29.44-70.83Q437.88-880 479.94-880t71.56 29.17Q581-821.67 581-780v251q0 44.17-29 75.08Q523-423 480-423t-72-30.92ZM480-651Zm-30 531v-136q-106-11-178-89t-72-184h60q0 91 64.29 153t155.5 62q91.21 0 155.71-62Q700-438 700-529h60q0 106-72 184t-178 89v136h-60Zm59.5-376.5Q521-510 521-529v-251q0-17-11.79-28.5T480-820q-17.42 0-29.21 11.5T439-780v251q0 19 11.5 32.5T480-483q18 0 29.5-13.5Z"/></symbol>
   <symbol id="i-arrow-upward" viewBox="0 -960 960 960"><path d="M450-160v-526L202-438l-42-42 320-320 320 320-42 42-248-248v526h-60Z"/></symbol>
-  <symbol id="i-area-chart" viewBox="0 -960 960 960"><path d="M120-160v-520l160 120 200-280 200 160h160v520H120Zm204-91 160-221 296 231v-379H659L492-754 294-475l-114-85v194l144 115Z"/></symbol>
-  <symbol id="i-local-police" viewBox="0 -960 960 960"><path d="m374-353 106-78 103 78-43-126 106-76H518l-38-125-38 125H314l104 76-44 126ZM480-81q-140-35-230-162.5T160-523v-238l320-120 320 120v238q0 152-90 279.5T480-81Zm0-62q115-38 187.5-143.5T740-523v-196l-260-98-260 98v196q0 131 72.5 236.5T480-143Zm0-337Z"/></symbol>
 
   <!-- Diligent "D" mark -->
   <symbol id="i-diligent-d" viewBox="0 0 73 80">
@@ -889,7 +907,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
             <div class="nav-children">
               <div class="nav-children-rule"></div>
               <div class="nav-child-list">
-                <button class="nav-child"><span>Incident Response</span></button>
+                <button class="nav-child" data-view="incident"><span>Incident Response</span></button>
                 <button class="nav-child"><span>Compliance Monitoring</span></button>
                 <button class="nav-child"><span>Succession Planning</span></button>
                 <button class="nav-child"><span>Smart Data Scan</span></button>
@@ -1009,14 +1027,10 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
        </div><!-- /.composer-stage -->
 
         <div class="chip-row">
-          <button class="chip" type="button">
-            <svg class="ico"><use href="#i-area-chart"/></svg>
-            <span class="label">Create a compliance report</span>
-          </button>
-          <button class="chip" type="button">
-            <svg class="ico"><use href="#i-local-police"/></svg>
-            <span class="label">Ask a question about policies</span>
-          </button>
+          <button class="chip" type="button"><span class="label">Appoint a director</span></button>
+          <button class="chip" type="button"><span class="label">Board resolution</span></button>
+          <button class="chip" type="button"><span class="label">Analyze data</span></button>
+          <button class="chip" type="button"><span class="label">Summarize</span></button>
         </div>
 
         <p class="disclaimer">
@@ -1196,13 +1210,31 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
    only the surrounding content changes.
    ============================================================ */
 (function () {
-  var frame = document.getElementById('frame');
-  var input = document.getElementById('promptInput');
-  var rows  = document.querySelectorAll('.nav-row[data-view]');
+  var frame      = document.getElementById('frame');
+  var input      = document.getElementById('promptInput');
+  var chatbox    = document.getElementById('chatbox');
+  var stage      = document.querySelector('.stage');
+  var cardRow    = document.querySelector('.card-row');
+  var disclaimer = chatbox ? chatbox.querySelector('.disclaimer') : null;
+  var rows       = document.querySelectorAll('[data-view]');
   if (!frame || !rows.length) return;
+
+  /* The card row is a single element that lives in one of two places:
+     above the composer (Home) or inside the chatbox below it
+     (Incident Response). Moving it beats duplicating the markup.   */
+  function placeCards(view) {
+    if (!cardRow || !stage || !chatbox) return;
+    if (view === 'incident') {
+      if (cardRow.parentNode !== chatbox) chatbox.insertBefore(cardRow, disclaimer);
+    } else if (cardRow.parentNode !== stage) {
+      stage.appendChild(cardRow);
+    }
+  }
 
   function setView(view) {
     frame.classList.toggle('mode-chat', view === 'chat');
+    frame.classList.toggle('mode-incident', view === 'incident');
+    placeCards(view);
     for (var i = 0; i < rows.length; i++) {
       var on = rows[i].getAttribute('data-view') === view;
       rows[i].classList.toggle('is-selected', on);
@@ -1218,8 +1250,9 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   for (var i = 0; i < rows.length; i++) {
     (function (row) {
       row.addEventListener('click', function () {
-        setView(row.getAttribute('data-view'));
-        if (row.getAttribute('data-view') === 'chat' && input) input.focus();
+        var view = row.getAttribute('data-view');
+        setView(view);
+        if (view === 'chat' && input) input.focus();
       });
     })(rows[i]);
   }
