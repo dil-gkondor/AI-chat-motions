@@ -29,11 +29,17 @@
       -2px   9px 12px 0 var(--elev-low-2),
       -12px 38px 24px 0 var(--elev-low-3),
       -12px 40px 20px 0 var(--elev-low-4);
+  /* same stack, every alpha x1.1 — used while the cursor is near */
+  --shadow-elevation-low-hover:
+      -1px   4px  8px 0 rgba(135,135,135,.0863),
+      -2px   9px 12px 0 rgba(135,135,135,.0647),
+      -12px 38px 24px 0 rgba(135,135,135,.0216),
+      -12px 40px 20px 0 rgba(135,135,135,.0129);
 
   /* outline / divider */
   --outline-static:#dee0e9;
-  --outline-default:#888b9a;        /* composer border — all states (XDS-5739) */
-  --outline-disabled:#888b9a;       /* composer border — default   */
+  --outline-default:#888b9a;        /* composer border — focused   */
+  --outline-disabled:#dee0e9;       /* composer border — default (muted) */
   --outline-highlighted:#888b9a;    /* composer border — proximity */
   --card-outline:#dee0e9;           /* Action/Secondary/Outline disabled */
   --tile-outline:#dee0e9;           /* Outline/Static */
@@ -539,12 +545,20 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
      large against small blurs, so translating it detaches the shadow's
      own rounded edge from the box. Only the glow moves.              */
   box-shadow:var(--shadow-elevation-low);
-  transition:border-color .32s var(--ease-soft);
+  transition:
+    border-color .32s var(--ease-soft),
+    box-shadow   .32s var(--ease-soft);
 }
-/* proximity — border only, box stays put */
-.chatbox.is-near .composer{border-color:var(--outline-highlighted);}
+/* proximity — border strengthens, shadow deepens 10%; box stays put */
+.chatbox.is-near .composer{
+  border-color:var(--outline-highlighted);
+  box-shadow:var(--shadow-elevation-low-hover);
+}
 /* focused — takes priority over proximity */
-.chatbox.is-focused .composer{border-color:var(--outline-default);}
+.chatbox.is-focused .composer{
+  border-color:var(--outline-default);
+  box-shadow:var(--shadow-elevation-low-hover);
+}
 /* keyboard-only affordance, additive to the Figma spec */
 .chatbox.is-focus-visible .composer{
   box-shadow:0 0 0 3px rgba(11,76,206,.28);
@@ -646,7 +660,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   align-items:center;
   justify-content:center;
   padding:0 16px;
-  border:1px solid var(--outline-default);
+  border:1px solid var(--outline-disabled);   /* muted at rest */
   border-radius:var(--radius-full);
   background:var(--surface-default);
   color:var(--on-secondary);
@@ -661,8 +675,19 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   font-size:14px;font-weight:400;line-height:20px;letter-spacing:0;
   color:var(--on-secondary);
 }
-.chip:hover{background:var(--secondary-hover);}
-.chip:active{background:var(--secondary-active);transition-duration:.08s;}
+.chip:hover{
+  background:var(--secondary-hover);
+  border-color:var(--outline-highlighted);   /* stronger on hover */
+}
+.chip:active{
+  background:var(--secondary-active);
+  border-color:var(--outline-highlighted);
+  transition-duration:.08s;
+}
+/* while the cursor is near the chatbox the whole group firms up,
+   matching the composer's proximity border */
+.chatbox.is-near .chip,
+.chatbox.is-focused .chip{border-color:var(--outline-highlighted);}
 /* Semantic/Shadow/Focus/Default — literal hexes, mode-independent */
 .chip:focus-visible{
   outline:none;
@@ -1059,13 +1084,16 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   var sendBtn  = document.getElementById('sendBtn');
   if (!chatbox || !composer || !content || !input) return;
 
-  var PROXIMITY   = 100;      // px — activation radius around the box
+  var PROXIMITY   = 120;      // px — activation radius around the box
   /* Horizontal travel mirrors the cursor proportionally: the glow is
      displaced by the same fraction of its travel that the cursor is
      displaced from the centre of the box, inverted. Expressed as a
-     ratio of the composer width so it scales with the layout.        */
-  var GLOW_X_RATIO = 0.15;
-  var GLOW_X_CAP   = 140;     // px — upper bound on desktop widths
+     ratio of the composer width so it scales with the layout.
+     Tuned against the travel seen at the extremes, where the edge
+     clamp scales the cap by ~0.803:
+       0.803 x 140 = 112px  ->  0.803 x 202 = 162  ->  0.803 x 351 = 282 */
+  var GLOW_X_RATIO = 0.358;
+  var GLOW_X_CAP   = 351;     // px — upper bound on desktop widths
   var MAX_Y        = 12;      // vertical stays gentle
   var FOCUS_SCALE = 0.7924;   // Figma: 729.754 / 921
   var FOCUS_BOOST = 0.35;
