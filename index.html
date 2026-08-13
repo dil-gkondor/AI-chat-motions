@@ -7,7 +7,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Castoro:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 /* ============================================================
@@ -367,7 +367,16 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   width:100%;
   max-width:var(--content-max);       /* 980 column + 2 x 80 gutter */
   margin:0 auto;
-  padding:0 var(--content-pad) 24px;
+  padding:0 var(--content-pad) 40px;   /* Home: disclaimer 40px off the bottom */
+  display:flex;
+  flex-direction:column;
+}
+/* Holds the welcome + chatbox group. The disclaimer sits OUTSIDE it so
+   it stays pinned to the bottom on every view — Home is the reference
+   position and the centred views must not drag it upward.            */
+.page-body{
+  flex:1 0 auto;
+  width:100%;
   display:flex;
   flex-direction:column;
 }
@@ -439,6 +448,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 .headline{
   margin:0;
+  font-family:'Castoro',Georgia,'Times New Roman',serif;
   font-size:clamp(20px,1.1rem + 1vw,28px);
   font-weight:400;
   line-height:1.22;
@@ -446,7 +456,15 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   color:var(--type-default);
   text-wrap:balance;
 }
-.headline b{font-weight:600;}
+/* the name is emphasised — Title/H1 Billboard/Emphasis = SemiBold.
+   Castoro ships Regular + Italic only, so 600 has no real cut and the
+   browser synthesises it; font-synthesis-weight keeps that switched on
+   in engines that would otherwise ignore the request.               */
+.headline b{
+  font-weight:600;
+  font-synthesis-weight:auto;
+  -webkit-font-synthesis:weight;
+}
 .subhead{
   margin:0;
   font-size:14px;font-weight:400;line-height:20px;letter-spacing:0;
@@ -469,12 +487,12 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 .card{
   min-width:0;
-  background:var(--surface-default);
+  background:var(--surface-variant-subtle);
   border:1px solid var(--card-outline);
   border-radius:var(--radius-lg);
   display:flex;flex-direction:column;align-items:flex-start;
-  gap:4px;                    /* 16 + 44 + 4 + 24 + 4 + 32 + 16 = 140 */
-  padding:16px 20px;
+  gap:4px;                    /* 20 + 20 + 4 + 24 + 4 + 32 + 20 = 124 */
+  padding:20px 16px;
   text-align:left;
   transition:
     border-color .2s var(--ease-soft),
@@ -492,12 +510,12 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   transform:translateY(-1px);
   transition-duration:.09s;
 }
+/* the bordered 44px tile is gone — the header icon now sits bare */
 .card-tile{
-  width:44px;height:44px;flex:none;
+  width:20px;height:20px;flex:none;
   display:flex;align-items:center;justify-content:center;
-  border-radius:var(--radius-md);
-  border:1px solid var(--tile-outline);
-  background:transparent;
+  border:0;
+  background:none;
   color:var(--primary-grad-start);
 }
 /* Gradient primary default, applied to the glyph itself */
@@ -581,7 +599,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .composer-footer{
   width:100%;
   display:flex;align-items:center;justify-content:space-between;
-  padding:24px 16px 12px;   /* 16 + 20 + 24 + 40 + 12 = 112 */
+  padding:8px 16px 12px;    /* 16 + 20 + 8 + 40 + 12 = 96 */
 }
 .btn-array{display:flex;align-items:center;}
 .btn-array.left{gap:0;}     /* attach sits flush against Tools */
@@ -616,7 +634,11 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .round-btn:hover{background:#f2f3f7;}
 
 /* send button — disabled by default, "Gradient primary active" when focused */
-.send-btn .ico{width:20px;height:20px;}   /* Button/Medium/Icon size */
+/* send is smaller than mic: 32x32 with a 20px glyph (Figma right
+   button array = 40 mic + 12 gap + 32 send = 84).
+   Button/Small also drops the radius Lg 12 -> Md 8.                */
+.send-btn{width:32px;height:32px;border-radius:var(--radius-md);}
+.send-btn .ico{width:20px;height:20px;}
 .send-btn,.send-btn:hover{
   background:var(--primary-disabled);
   color:var(--on-primary-disabled);
@@ -662,7 +684,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   padding:0 16px;
   border:1px solid var(--outline-disabled);   /* muted at rest */
   border-radius:var(--radius-full);
-  background:var(--surface-default);
+  background:var(--surface-variant-subtle);
   color:var(--on-secondary);
   white-space:nowrap;
   cursor:pointer;
@@ -695,7 +717,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 
 .disclaimer{
-  margin:0;
+  margin:24px 0 0;        /* same 24px rhythm it had inside the chatbox */
   position:relative;
   z-index:1;              /* above the glow layer */
   display:flex;align-items:center;justify-content:center;gap:4px;
@@ -719,10 +741,11 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .frame.mode-incident .stage{flex:0 0 auto;padding:0;}
 .frame.mode-chat .chatbox,
 .frame.mode-incident .chatbox{margin-top:32px;}
-.frame.mode-chat .content-inner::before,
-.frame.mode-incident .content-inner::before{content:"";flex:1 0 0;}
-.frame.mode-chat .content-inner::after,
-.frame.mode-incident .content-inner::after{content:"";flex:1 0 0;}
+/* spacers live on .page-body, so the pinned disclaimer is unaffected */
+.frame.mode-chat .page-body::before,
+.frame.mode-incident .page-body::before{content:"";flex:1 0 0;}
+.frame.mode-chat .page-body::after,
+.frame.mode-incident .page-body::after{content:"";flex:1 0 0;}
 
 /* New chat: chips replace the cards */
 .frame.mode-chat .card-row{display:none;}
@@ -977,6 +1000,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
     <!-- ============ Content area ============ -->
     <main class="content" id="content">
      <div class="content-inner">
+      <div class="page-body">
       <div class="stage">
 
       <section class="welcome">
@@ -1050,18 +1074,18 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
           </div>
         </div>
        </div><!-- /.composer-stage -->
-
         <div class="chip-row">
           <button class="chip" type="button"><span class="label">Appoint a director</span></button>
           <button class="chip" type="button"><span class="label">Board resolution</span></button>
           <button class="chip" type="button"><span class="label">Analyze data</span></button>
           <button class="chip" type="button"><span class="label">Summarize</span></button>
         </div>
-
-        <p class="disclaimer">
-          AI-generated content may have inaccuracies. <a href="#">Learn more.</a>
-        </p>
       </section>
+      </div><!-- /.page-body -->
+
+      <p class="disclaimer">
+        AI-generated content may have inaccuracies. <a href="#">Learn more.</a>
+      </p>
      </div><!-- /.content-inner -->
     </main>
 
@@ -1243,7 +1267,6 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   var chatbox    = document.getElementById('chatbox');
   var stage      = document.querySelector('.stage');
   var cardRow    = document.querySelector('.card-row');
-  var disclaimer = chatbox ? chatbox.querySelector('.disclaimer') : null;
   var rows       = document.querySelectorAll('[data-view]');
   if (!frame || !rows.length) return;
 
@@ -1253,7 +1276,8 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   function placeCards(view) {
     if (!cardRow || !stage || !chatbox) return;
     if (view === 'incident') {
-      if (cardRow.parentNode !== chatbox) chatbox.insertBefore(cardRow, disclaimer);
+      /* last child of the chatbox — the disclaimer now lives outside it */
+      if (cardRow.parentNode !== chatbox) chatbox.appendChild(cardRow);
     } else if (cardRow.parentNode !== stage) {
       stage.appendChild(cardRow);
     }

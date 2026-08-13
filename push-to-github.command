@@ -6,7 +6,37 @@ cd "$(dirname "$0")" || exit 1
 
 REMOTE="https://github.com/dil-gkondor/AI-chat-motions.git"
 
-DEFAULT_MSG="Rebuild chips and add the Incident Response layout (XDS-5739)
+DEFAULT_MSG="Finetune all three screens to the latest XDS-5739 frames
+
+Typography
+- welcome headline now Castoro (serif), loaded from Google Fonts
+- 'Marzena' is semibold; Castoro ships Regular + Italic only, so the
+  weight is browser-synthesised (font-synthesis-weight kept on)
+
+Chat box
+- composer 112 -> 96 tall: the input-to-footer gap drops 24 -> 8
+- send button 40 -> 32 with radius Lg 12 -> Md 8 (Button/Small);
+  right array is now 40 mic + 12 gap + 32 send = 84
+
+Cards and chips
+- action cards 140 -> 124: padding 20/16, the bordered 44px icon tile
+  is gone and the header icon sits bare at 20px
+- cards and chips both fill with Surface/Variant subtle #f9f9fc
+
+Disclaimer
+- pinned to one position across all three views with Home as the
+  reference (825-841 in the 881 content area). It moved out of the
+  chatbox into a new .page-body sibling so the centred views cannot
+  drag it upward. This diverges from Figma on New chat and Incident
+  Response, which place it 595.5 and 633.5 - consistency was the
+  explicit requirement.
+
+Chatbox totals match Figma: Home 136, New chat 196.
+
+No interaction or motion changes - proximity radius, glow travel,
+easing, colours, blur and focus behaviour are all untouched."
+
+UNUSED_MSG="Rebuild chips and add the Incident Response layout (XDS-5739)
 
 New chat chips -> Chip / Outline / Large / Default:
 - four chips, no icons (both icon slots are hidden in the component)
