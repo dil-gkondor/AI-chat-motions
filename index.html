@@ -46,6 +46,11 @@
   --secondary-hover:#eeeff5;        /* Action/Secondary/Hover  */
   --secondary-active:#dee0e9;       /* Action/Secondary/Active */
   --storm-60:#8a90a5;               /* Color/Storm/60 — composer bottom stroke */
+
+  /* Semantic/Color/AI/Default — the "AI gradient diagonal" stops */
+  --ai-grad-start:#be0c1e;
+  --ai-grad-mid:#ab48da;
+  --ai-grad-end:#4069fe;
   --divider-default:#dee0e9;
   --secondary-outline-disabled:#dee0e9;
 
@@ -482,8 +487,8 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   border:1px solid var(--card-outline);
   border-radius:var(--radius-lg);
   display:flex;flex-direction:column;align-items:flex-start;
-  gap:4px;                    /* 20 + 20 + 4 + 24 + 4 + 32 + 20 = 124 */
-  padding:20px 16px;
+  gap:4px;                    /* 16 + 20 + 4 + 20 + 4 + 32 + 16 = 112 */
+  padding:16px;
   text-align:left;
   transition:
     border-color .2s var(--ease-soft),
@@ -511,9 +516,10 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 /* Gradient primary default, applied to the glyph itself */
 .card-tile .ico{fill:url(#grad-primary);}
+/* Title/H6 Xs - Emphasis (was H5 Sm at 16/24) */
 .card-title{
   margin:0;
-  font-size:16px;font-weight:600;line-height:24px;letter-spacing:0;
+  font-size:14px;font-weight:600;line-height:20px;letter-spacing:0;
   color:var(--on-secondary);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
 }
@@ -558,6 +564,48 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
     border-color .32s var(--ease-soft),
     box-shadow   .32s var(--ease-soft);
 }
+/* ---- intro: the AI gradient runs the border once on load ----------
+   An SVG stroke dash rather than a conic gradient. A conic gradient
+   advances by ANGLE, and on a 980x88 box the two short edges take up
+   only ~10 of 360 degrees — so the segment crawls the long edges and
+   snaps across the corners. stroke-dashoffset advances by PATH LENGTH,
+   so travel is uniform and the corners are traced properly.        */
+.composer-sheen{
+  position:absolute;
+  /* -1px, not 0: an absolutely positioned child resolves against the
+     PADDING box, so inset:0 made the svg 2px narrower than the border
+     box it is meant to trace. The viewBox then scaled to fit and the
+     left and right edges drifted off the composer's outline.        */
+  inset:-1px;
+  z-index:2;
+  overflow:visible;
+  pointer-events:none;
+  opacity:0;
+}
+.sheen-path{
+  fill:none;
+  stroke:url(#ai-grad-diagonal);
+  stroke-width:1;
+  stroke-linecap:round;
+  /* pathLength is normalised to 100, so these are percentages of the
+     perimeter: 35 of line, 65 of gap (30% shorter than the half-box) */
+  stroke-dasharray:35 65;
+  stroke-dashoffset:0;
+}
+@keyframes sheen-run{ to{ stroke-dashoffset:-100; } }   /* one full lap */
+@keyframes sheen-life{
+   0%{opacity:0;}
+   6%{opacity:1;}
+  78%{opacity:1;}
+ 100%{opacity:0;}
+}
+.composer.is-intro .composer-sheen{
+  animation:sheen-life 1.9s var(--ease-soft) forwards;
+}
+.composer.is-intro .sheen-path{
+  animation:sheen-run 1.9s linear 1;
+}
+
 /* "Chat input contrast" — a 21.5px gradient run darkening the bottom
    of the border ring into Color/Storm/60. Painted as a masked ring so
    it follows the 12px corners. Transparent above the band, so the
@@ -1087,6 +1135,16 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
           <div class="glow glow-b"></div>
         </div>
         <div class="composer" id="composer">
+          <svg class="composer-sheen" id="composerSheen" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="ai-grad-diagonal" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0"   stop-color="#be0c1e"/>
+                <stop offset="0.5" stop-color="#ab48da"/>
+                <stop offset="1"   stop-color="#4069fe"/>
+              </linearGradient>
+            </defs>
+            <rect class="sheen-path" id="sheenPath" pathLength="100" rx="11.5"/>
+          </svg>
           <div class="composer-input">
             <input type="text" id="promptInput" placeholder="Ask anything" aria-label="Prompt" />
           </div>
@@ -1295,6 +1353,62 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 })();
 
 /* ============================================================
+   Intro: run the AI gradient around the composer border once on load,
+   then hand off to the resting state.
+   ============================================================ */
+(function () {
+  var composer = document.getElementById('composer');
+  var sheen    = document.getElementById('composerSheen');
+  var path     = document.getElementById('sheenPath');
+  if (!composer || !sheen || !path) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  /* the rect has to match the composer in real pixels, otherwise the
+     viewBox scales and both the 1.5px stroke and the 12px corner
+     radius get distorted on this very wide box */
+  function size() {
+    var r = composer.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    sheen.setAttribute('viewBox', '0 0 ' + r.width + ' ' + r.height);
+    /* inset by half the stroke width so the line sits flush inside the
+       composer's outer edge rather than straddling it */
+    path.setAttribute('x', 0.5);
+    path.setAttribute('y', 0.5);
+    path.setAttribute('width',  Math.max(0, r.width  - 1));
+    path.setAttribute('height', Math.max(0, r.height - 1));
+  }
+
+  var timer = 0;
+  function done() { composer.classList.remove('is-intro'); }
+
+  /* attached once — binding it inside play() stacks a listener per replay */
+  sheen.addEventListener('animationend', function (e) {
+    if (e.animationName === 'sheen-life') done();
+  });
+
+  function play() {
+    size();
+    /* drop the class and force a reflow: re-adding it in the same frame
+       without this will not restart the CSS animation */
+    composer.classList.remove('is-intro');
+    void composer.offsetWidth;
+    composer.classList.add('is-intro');
+    clearTimeout(timer);
+    timer = setTimeout(done, 2600);   /* belt and braces */
+  }
+
+  /* wait for layout + webfonts so the ring is drawn at final size */
+  function begin() { requestAnimationFrame(play); }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(begin);
+  else begin();
+
+  /* every sidebar selection replays the intro from the top */
+  document.addEventListener('view:changed', begin);
+  window.addEventListener('resize', size);
+  if (window.ResizeObserver) new ResizeObserver(size).observe(composer);
+})();
+
+/* ============================================================
    Headline word cycle — blur emerge
    governance -> risk -> compliance -> repeat
    Built on the cyc/ease/loop primitives, restyled to the headline's
@@ -1318,7 +1432,8 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
      sat still at the old flat HOLD.                                   */
   /* SETTLE 0: the next word starts the instant the last character of
      the previous one has finished fading out — no blank beat */
-  var STAGGER = 7, ENTER = 34, EXIT = 26, SETTLE = 0;
+  /* fractional frames are fine — the counter advances on elapsed time */
+  var STAGGER = 3.75, ENTER = 18.1, EXIT = 13.9, SETTLE = 0;
   var HOLD_STILL = 120;   /* 2 seconds — deliberately not halved */
   var hold = HOLD_STILL;  /* recomputed per word in build() */
   var MAX_BLUR = 12;
@@ -1413,11 +1528,22 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   /* no point animating a hidden tab */
   function sync() { if (document.hidden) stop(); else start(); }
 
+  /* back to the first word, from frame zero */
+  function restart() {
+    stop();
+    f = 0;
+    wordIndex = 0;
+    build(WORDS[0]);
+    measure();
+    start();
+  }
+
   build(WORDS[0]);
   measure();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
   window.addEventListener('resize', measure);
   document.addEventListener('visibilitychange', sync);
+  document.addEventListener('view:changed', restart);
 
   start();
 })();
@@ -1464,9 +1590,13 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
       if (on) rows[i].setAttribute('aria-current', 'page');
       else rows[i].removeAttribute('aria-current');
     }
-    /* the composer has moved — let the proximity loop re-measure */
     requestAnimationFrame(function () {
+      /* the composer has moved — let the proximity loop re-measure */
       window.dispatchEvent(new Event('resize'));
+      /* the composer and headline are shared across views, so nothing
+         re-mounts on a switch. Announce it so both animation modules
+         replay from the top, as if the page had loaded fresh.        */
+      document.dispatchEvent(new CustomEvent('view:changed', { detail: { view: view } }));
     });
   }
 
