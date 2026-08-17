@@ -45,6 +45,7 @@
   --tile-outline:#dee0e9;           /* Outline/Static */
   --secondary-hover:#eeeff5;        /* Action/Secondary/Hover  */
   --secondary-active:#dee0e9;       /* Action/Secondary/Active */
+  --storm-60:#8a90a5;               /* Color/Storm/60 — composer bottom stroke */
   --divider-default:#dee0e9;
   --secondary-outline-disabled:#dee0e9;
 
@@ -454,16 +455,6 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   line-height:1.22;
   letter-spacing:0;
   color:var(--type-default);
-  text-wrap:balance;
-}
-/* the name is emphasised — Title/H1 Billboard/Emphasis = SemiBold.
-   Castoro ships Regular + Italic only, so 600 has no real cut and the
-   browser synthesises it; font-synthesis-weight keeps that switched on
-   in engines that would otherwise ignore the request.               */
-.headline b{
-  font-weight:600;
-  font-synthesis-weight:auto;
-  -webkit-font-synthesis:weight;
 }
 .subhead{
   margin:0;
@@ -567,6 +558,25 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
     border-color .32s var(--ease-soft),
     box-shadow   .32s var(--ease-soft);
 }
+/* "Chat input contrast" — a 21.5px gradient run darkening the bottom
+   of the border ring into Color/Storm/60. Painted as a masked ring so
+   it follows the 12px corners. Transparent above the band, so the
+   proximity / focus border colour still reads through.              */
+.composer::after{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border:1px solid transparent;
+  border-radius:inherit;
+  background:linear-gradient(to bottom,
+      rgba(138,144,165,0) calc(100% - 21.5px),
+      rgba(138,144,165,1) 100%) border-box;
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+          mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+          mask-composite:exclude;
+  pointer-events:none;
+}
 /* proximity — border strengthens, shadow deepens 10%; box stays put */
 .chatbox.is-near .composer{
   border-color:var(--outline-highlighted);
@@ -586,15 +596,43 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   padding:16px 24px 0 24px;
   display:flex;align-items:center;gap:8px;
 }
+/* the cycling word in the headline */
+.swap{
+  display:inline-block;
+  text-align:left;
+  /* each letter is its own inline-block, so without this the browser
+     is free to break the word between characters */
+  white-space:nowrap;
+  width:var(--swap-w,auto);
+  font-weight:600;        /* carries the emphasis the name used to */
+  font-synthesis-weight:auto;
+  -webkit-font-synthesis:weight;
+  /* only ever changes on font load / resize, never mid-cycle */
+  transition:width .3s var(--ease-soft);
+}
+.swap .char{
+  display:inline-block;
+  white-space:pre;
+  will-change:opacity,filter;
+}
+
 .composer-input input{
-  flex:1 1 0;min-width:0;
+  flex:1 1 0;
+  min-width:0;
   height:20px;
   border:0;outline:0;background:transparent;padding:0;
   font-family:inherit;
   font-size:14px;font-weight:400;line-height:20px;letter-spacing:0;
   color:var(--type-default);
 }
+/* the native placeholder is the no-JS fallback; the script clears it
+   once the animated overlay is installed */
 .composer-input input::placeholder{color:var(--type-muted);opacity:1;}
+
+@media (prefers-reduced-motion:reduce){
+  .swap .char{filter:none !important;}
+  .swap{transition:none;}
+}
 
 .composer-footer{
   width:100%;
@@ -738,23 +776,23 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
      Incident Resp.  block 209.5 -> 671.5 in 881  (209.5 / 209.5)
    ============================================================ */
 .frame.mode-chat .stage,
-.frame.mode-incident .stage{flex:0 0 auto;padding:0;}
+.frame.mode-cards .stage{flex:0 0 auto;padding:0;}
 .frame.mode-chat .chatbox,
-.frame.mode-incident .chatbox{margin-top:32px;}
+.frame.mode-cards .chatbox{margin-top:32px;}
 /* spacers live on .page-body, so the pinned disclaimer is unaffected */
 .frame.mode-chat .page-body::before,
-.frame.mode-incident .page-body::before{content:"";flex:1 0 0;}
+.frame.mode-cards .page-body::before{content:"";flex:1 0 0;}
 .frame.mode-chat .page-body::after,
-.frame.mode-incident .page-body::after{content:"";flex:1 0 0;}
+.frame.mode-cards .page-body::after{content:"";flex:1 0 0;}
 
 /* New chat: chips replace the cards */
 .frame.mode-chat .card-row{display:none;}
 .frame.mode-chat .chip-row{display:flex;}
 
-/* Incident Response: the card row moves inside the chatbox, under the
-   composer. 112 + 24 + 140 + 24 + 16 = 316, matching the Figma node. */
-.frame.mode-incident .chip-row{display:none;}
-.frame.mode-incident .card-row{
+/* Incident Response and Compliance Monitoring: the card row moves
+   inside the chatbox, under the composer.                          */
+.frame.mode-cards .chip-row{display:none;}
+.frame.mode-cards .card-row{
   position:relative;
   z-index:1;              /* above the glow layer, like the chips */
 }
@@ -956,7 +994,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
               <div class="nav-children-rule"></div>
               <div class="nav-child-list">
                 <button class="nav-child" data-view="incident"><span>Incident Response</span></button>
-                <button class="nav-child"><span>Compliance Monitoring</span></button>
+                <button class="nav-child" data-view="compliance"><span>Compliance Monitoring</span></button>
                 <button class="nav-child"><span>Succession Planning</span></button>
                 <button class="nav-child"><span>Smart Data Scan</span></button>
                 <button class="nav-child"><span>AI Data Analytics</span></button>
@@ -1009,7 +1047,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
           <span class="word">Diligent</span>
         </div>
         <div class="welcome-copy">
-          <h1 class="headline">What&rsquo;s on your plate, <b>Marzena</b>?</h1>
+          <h1 class="headline">How can I help with <span class="swap" id="swapWord">governance?</span></h1>
           <p class="subhead">Calm periods are a good time to validate coverage, map dependencies, and generate recommendations.</p>
         </div>
       </section>
@@ -1050,7 +1088,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
         </div>
         <div class="composer" id="composer">
           <div class="composer-input">
-            <input type="text" id="promptInput" placeholder="Placeholder text or suggestion for prompt" aria-label="Prompt" />
+            <input type="text" id="promptInput" placeholder="Ask anything" aria-label="Prompt" />
           </div>
           <div class="composer-footer">
             <div class="btn-array left">
@@ -1257,6 +1295,134 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 })();
 
 /* ============================================================
+   Headline word cycle — blur emerge
+   governance -> risk -> compliance -> repeat
+   Built on the cyc/ease/loop primitives, restyled to the headline's
+   own type rather than the demo's. The word swaps only once every
+   character has fully exited, so the two words never overlap.
+   ============================================================ */
+(function () {
+  var host = document.getElementById('swapWord');
+  if (!host) return;
+
+  var WORDS = ['governance', 'risk', 'compliance'];
+  /* the "?" rides along as the final character, so it blurs in and out
+     with the word instead of sitting static beside it */
+  var TAIL = '?';
+
+  /* Timings in 60fps frames. Enter/exit are 30% quicker than before;
+     HOLD_STILL is the window where the WHOLE word is up and motionless.
+     Because the characters are staggered, the per-character hold has to
+     be padded by the stagger span or the first letter starts leaving
+     before the last has arrived — which is why the word never actually
+     sat still at the old flat HOLD.                                   */
+  /* SETTLE 0: the next word starts the instant the last character of
+     the previous one has finished fading out — no blank beat */
+  var STAGGER = 7, ENTER = 34, EXIT = 26, SETTLE = 0;
+  var HOLD_STILL = 120;   /* 2 seconds — deliberately not halved */
+  var hold = HOLD_STILL;  /* recomputed per word in build() */
+  var MAX_BLUR = 12;
+
+  var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  var ease = {
+    out: function (t) { return 1 - Math.pow(1 - t, 3); },
+    in:  function (t) { return t * t * t; }
+  };
+
+  /* 0 = start state, 1 = target state. One pass only — the caller
+     resets the frame counter when it swaps the word.              */
+  function cyc(f, offset, enter, hold, exit) {
+    if (f < offset) return 0;
+    var t = f - offset;
+    if (t < enter)                return ease.out(t / enter);
+    if (t < enter + hold)         return 1;
+    if (t < enter + hold + exit)  return 1 - ease.in((t - enter - hold) / exit);
+    return 0;
+  }
+
+  var chars = [], f = 0, wordIndex = 0, raf = 0, last = 0;
+  var exitDone = 0, cycleEnd = 0;
+  var widths = {};
+
+  function build(word) {
+    host.textContent = '';
+    chars = (word + TAIL).split('').map(function (c) {
+      var s = document.createElement('span');
+      s.className = 'char';
+      s.textContent = c;
+      s.style.opacity = 0;
+      host.appendChild(s);
+      return s;
+    });
+    /* pad the hold so every word gets the same 2s fully-visible window,
+       whatever its length */
+    hold = HOLD_STILL + (chars.length - 1) * STAGGER;
+    exitDone = (chars.length - 1) * STAGGER + ENTER + hold + EXIT;
+    cycleEnd = exitDone + SETTLE;
+  }
+
+  /* The slot is locked to the WIDEST word. The headline is centred, so
+     a slot that resized per word would change the line's total width
+     and shove "How can I help with" left and right on every swap.
+     A fixed slot keeps the line width constant, so the static half of
+     the sentence never moves and the gap after "with" never changes —
+     only the animated characters do.                                */
+  function measure() {
+    var probe = document.createElement('span');
+    probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre';
+    probe.style.font = window.getComputedStyle(host).font;
+    document.body.appendChild(probe);
+    var max = 0;
+    WORDS.forEach(function (w) {
+      probe.textContent = w + TAIL;
+      var px = probe.getBoundingClientRect().width;
+      widths[w] = Math.ceil(px);
+      if (px > max) max = px;
+    });
+    probe.remove();
+    /* +2px cushion: the per-character spans measure fractionally wider
+       than the same string as one run, so an exact fit can still wrap */
+    host.style.setProperty('--swap-w', (Math.ceil(max) + 2) + 'px');
+  }
+
+  function tick(now) {
+    /* advance by real elapsed time so "2 seconds" holds on 120Hz
+       displays too; clamped so a backgrounded tab cannot jump */
+    if (!last) last = now;
+    f += Math.min((now - last) / (1000 / 60), 4);
+    last = now;
+
+    var reduce = mqReduce.matches;
+    for (var i = 0; i < chars.length; i++) {
+      var p = cyc(f, i * STAGGER, ENTER, hold, EXIT);
+      chars[i].style.opacity = p;
+      if (!reduce) chars[i].style.filter = 'blur(' + ((1 - p) * MAX_BLUR).toFixed(2) + 'px)';
+    }
+    if (f >= cycleEnd) {
+      wordIndex = (wordIndex + 1) % WORDS.length;
+      build(WORDS[wordIndex]);
+      f = 0;
+    }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function start() { if (!raf) { last = 0; raf = requestAnimationFrame(tick); } }
+  function stop()  { cancelAnimationFrame(raf); raf = 0; last = 0; }
+
+  /* no point animating a hidden tab */
+  function sync() { if (document.hidden) stop(); else start(); }
+
+  build(WORDS[0]);
+  measure();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+  window.addEventListener('resize', measure);
+  document.addEventListener('visibilitychange', sync);
+
+  start();
+})();
+
+/* ============================================================
    View switching — Home (cards) vs New chat (chips)
    The composer and all of its interaction states are shared;
    only the surrounding content changes.
@@ -1273,9 +1439,14 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   /* The card row is a single element that lives in one of two places:
      above the composer (Home) or inside the chatbox below it
      (Incident Response). Moving it beats duplicating the markup.   */
+  /* views that render the cards inside the chatbox */
+  function inlineCards(view) {
+    return view === 'incident' || view === 'compliance';
+  }
+
   function placeCards(view) {
     if (!cardRow || !stage || !chatbox) return;
-    if (view === 'incident') {
+    if (inlineCards(view)) {
       /* last child of the chatbox — the disclaimer now lives outside it */
       if (cardRow.parentNode !== chatbox) chatbox.appendChild(cardRow);
     } else if (cardRow.parentNode !== stage) {
@@ -1285,7 +1456,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 
   function setView(view) {
     frame.classList.toggle('mode-chat', view === 'chat');
-    frame.classList.toggle('mode-incident', view === 'incident');
+    frame.classList.toggle('mode-cards', inlineCards(view));
     placeCards(view);
     for (var i = 0; i < rows.length; i++) {
       var on = rows[i].getAttribute('data-view') === view;
