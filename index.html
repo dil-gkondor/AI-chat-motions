@@ -665,6 +665,9 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
      is free to break the word between characters */
   white-space:nowrap;
   width:var(--swap-w,auto);
+  /* the cycling words are wider than the slot and spill to the right
+     rather than resizing it — that is what keeps the line anchored */
+  overflow:visible;
   font-weight:600;        /* carries the emphasis the name used to */
   font-synthesis-weight:auto;
   -webkit-font-synthesis:weight;
@@ -850,12 +853,118 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .frame.mode-chat .card-row{display:none;}
 .frame.mode-chat .chip-row{display:flex;}
 
-/* Incident Response and Compliance Monitoring: the card row moves
-   inside the chatbox, under the composer.                          */
+/* Compliance Monitoring: the card row moves inside the chatbox,
+   under the composer.                                              */
 .frame.mode-cards .chip-row{display:none;}
 .frame.mode-cards .card-row{
   position:relative;
   z-index:1;              /* above the glow layer, like the chips */
+}
+
+/* ============================================================
+   Incident Response — narrow composer + a bordered ideas container
+   Figma 11379:18266: composer 788 wide (176px gutters in the 1140
+   content area), container 788 x 284 forty pixels below it.
+   ============================================================ */
+.ideas{display:none;}
+.frame.mode-ideas .card-row,
+.frame.mode-ideas .chip-row{display:none;}
+/* narrow the whole column to the composer's 788px */
+.frame.mode-ideas .content-inner{
+  max-width:calc(788px + 2 * var(--content-pad));
+}
+.frame.mode-ideas .stage{flex:0 0 auto;padding:0;}
+.frame.mode-ideas .chatbox{margin-top:24px;}   /* Figma: 24, not 32 */
+.frame.mode-ideas .page-body::before{content:"";flex:1 0 0;}
+.frame.mode-ideas .page-body::after{content:"";flex:1 0 0;}
+.frame.mode-ideas .ideas{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  width:100%;
+  margin-top:40px;
+  padding:16px;
+  border:1px solid var(--outline-static);
+  border-radius:16px;        /* Radius/Lg-16, not the 12 used elsewhere */
+  background:transparent;    /* the wash comes from the content area */
+}
+.ideas-head{display:flex;flex-direction:column;gap:0;}
+.ideas-title{
+  margin:0;
+  font-size:14px;font-weight:600;line-height:20px;letter-spacing:0;
+  color:#242628;
+}
+.ideas-sub{
+  margin:0;
+  font-size:12px;font-weight:400;line-height:16px;letter-spacing:.3px;
+  color:#5d5e61;
+}
+.ideas-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+.idea{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+  padding:12px;
+  min-width:0;
+  text-align:left;
+  background:var(--surface-variant-subtle);
+  border:1px solid var(--card-outline);
+  border-radius:var(--radius-lg);
+  cursor:pointer;
+  transition:
+    background-color .18s var(--ease-soft),
+    box-shadow       .22s var(--ease-soft);
+}
+/* Clickable card: hover lifts to white + Elevation/Low, pressed sinks
+   back to the subtle fill */
+.idea:hover{
+  background:var(--surface-default);
+  box-shadow:var(--shadow-elevation-low);
+}
+.idea:active{
+  background:var(--surface-variant-subtle);
+  box-shadow:none;
+  transition-duration:.08s;
+}
+.idea-head{
+  display:flex;align-items:center;gap:8px;
+  max-width:100%;
+  color:var(--type-muted);
+}
+.idea-head .ico{width:20px;height:20px;}
+.idea-name{
+  font-size:12px;font-weight:600;line-height:16px;letter-spacing:0;
+  color:var(--type-muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.idea-prompt{
+  font-size:12px;font-weight:400;line-height:16px;letter-spacing:0;
+  color:var(--type-muted);
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.ideas-more{
+  align-self:flex-start;
+  display:flex;align-items:center;gap:0;
+  padding:4px;
+  border-radius:var(--radius-md);
+  color:var(--on-secondary);
+  transition:background-color .12s ease;
+}
+.ideas-more:hover{background:#f2f3f7;}
+.ideas-more .ico{width:16px;height:16px;}
+.ideas-more .label{
+  padding:0 2px;
+  font-size:12px;font-weight:600;line-height:16px;letter-spacing:0;
+  color:var(--on-secondary);
+  white-space:nowrap;
 }
 
 /* ============================================================
@@ -968,6 +1077,11 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   <symbol id="i-tune" viewBox="0 -960 960 960"><path d="M427-120v-225h60v83h353v60H487v82h-60Zm-307-82v-60h247v60H120Zm187-166v-82H120v-60h187v-84h60v226h-60Zm120-82v-60h413v60H427Zm166-165v-225h60v82h187v60H653v83h-60Zm-473-83v-60h413v60H120Z"/></symbol>
   <symbol id="i-mic" viewBox="0 -960 960 960"><path d="M408-453.92q-29-30.91-29-75.08v-251q0-41.67 29.44-70.83Q437.88-880 479.94-880t71.56 29.17Q581-821.67 581-780v251q0 44.17-29 75.08Q523-423 480-423t-72-30.92ZM480-651Zm-30 531v-136q-106-11-178-89t-72-184h60q0 91 64.29 153t155.5 62q91.21 0 155.71-62Q700-438 700-529h60q0 106-72 184t-178 89v136h-60Zm59.5-376.5Q521-510 521-529v-251q0-17-11.79-28.5T480-820q-17.42 0-29.21 11.5T439-780v251q0 19 11.5 32.5T480-483q18 0 29.5-13.5Z"/></symbol>
   <symbol id="i-arrow-upward" viewBox="0 -960 960 960"><path d="M450-160v-526L202-438l-42-42 320-320 320 320-42 42-248-248v526h-60Z"/></symbol>
+  <symbol id="i-calendar-month" viewBox="0 -960 960 960"><path d="M180-80q-24 0-42-18t-18-42v-620q0-24 18-42t42-18h65v-60h65v60h340v-60h65v60h65q24 0 42 18t18 42v620q0 24-18 42t-42 18H180Zm0-60h600v-430H180v430Zm0-490h600v-130H180v130Zm0 0v-130 130Zm300 230q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-188.5-11.5Q280-423 280-440t11.5-28.5Q303-480 320-480t28.5 11.5Q360-457 360-440t-11.5 28.5Q337-400 320-400t-28.5-11.5ZM640-400q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-188.5-11.5Q280-263 280-280t11.5-28.5Q303-320 320-320t28.5 11.5Q360-297 360-280t-11.5 28.5Q337-240 320-240t-28.5-11.5ZM640-240q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/></symbol>
+  <symbol id="i-search" viewBox="0 -960 960 960"><path d="M796-121 533-384q-30 26-70 40.5T378-329q-108 0-183-75t-75-181q0-106 75-181t182-75q106 0 180.5 75T632-585q0 43-14 83t-42 75l264 262-44 44ZM377-389q81 0 138-57.5T572-585q0-81-57-138.5T377-781q-82 0-139.5 57.5T180-585q0 81 57.5 138.5T377-389Z"/></symbol>
+  <symbol id="i-description" viewBox="0 -960 960 960"><path d="M319-250h322v-60H319v60Zm0-170h322v-60H319v60ZM220-80q-24 0-42-18t-18-42v-680q0-24 18-42t42-18h361l219 219v521q0 24-18 42t-42 18H220Zm331-554v-186H220v680h520v-494H551ZM220-820v186-186 680-680Z"/></symbol>
+  <symbol id="i-draft" viewBox="0 -960 960 960"><path d="M220-80q-24 0-42-18t-18-42v-680q0-24 18-42t42-18h361l219 219v521q0 24-18 42t-42 18H220Zm331-554v-186H220v680h520v-494H551ZM220-820v186-186 680-680Z"/></symbol>
+  <symbol id="i-arrow-left-alt" viewBox="0 -960 960 960"><path d="M400-240 160-480l241-241 43 42-169 169h526v60H275l168 168-43 42Z"/></symbol>
 
   <!-- Diligent "D" mark -->
   <symbol id="i-diligent-d" viewBox="0 0 73 80">
@@ -1189,6 +1303,53 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
           <button class="chip" type="button"><span class="label">Analyze data</span></button>
           <button class="chip" type="button"><span class="label">Summarize</span></button>
         </div>
+      </section>
+
+      <!-- Incident Response only: prompt ideas in a bordered container -->
+      <section class="ideas" id="ideas">
+        <div class="ideas-head">
+          <h2 class="ideas-title">Ideas to get you started</h2>
+          <p class="ideas-sub">Select one to load it into the prompt, then adjust the specifics before you send.</p>
+        </div>
+
+        <div class="ideas-grid">
+          <button class="idea" type="button">
+            <span class="idea-head">
+              <svg class="ico"><use href="#i-calendar-month"/></svg>
+              <span class="idea-name">Plan an engagement</span>
+            </span>
+            <span class="idea-prompt">&ldquo;Scope the Q3 SOX controls testing and draft a fieldwork timeline.&rdquo;</span>
+          </button>
+
+          <button class="idea" type="button">
+            <span class="idea-head">
+              <svg class="ico"><use href="#i-draft"/></svg>
+              <span class="idea-name">Request evidence</span>
+            </span>
+            <span class="idea-prompt">&ldquo;Request access review evidence from the IT control owners.&rdquo;</span>
+          </button>
+
+          <button class="idea" type="button">
+            <span class="idea-head">
+              <svg class="ico"><use href="#i-search"/></svg>
+              <span class="idea-name">Trace a decision</span>
+            </span>
+            <span class="idea-prompt">&ldquo;Show how the vendor risk rating was determined, and who approved it.&rdquo;</span>
+          </button>
+
+          <button class="idea" type="button">
+            <span class="idea-head">
+              <svg class="ico"><use href="#i-description"/></svg>
+              <span class="idea-name">Brief the committee</span>
+            </span>
+            <span class="idea-prompt">&ldquo;Summarize open findings and remediation status by severity.&rdquo;</span>
+          </button>
+        </div>
+
+        <button class="ideas-more" type="button">
+          <svg class="ico"><use href="#i-arrow-left-alt"/></svg>
+          <span class="label">Browse the prompt library</span>
+        </button>
       </section>
       </div><!-- /.page-body -->
 
@@ -1433,6 +1594,8 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   if (!host) return;
 
   var WORDS = ['governance', 'risk', 'compliance'];
+  /* after the three words, the line settles on GRC and stays there */
+  var FINAL = 'GRC';
   /* the "?" rides along as the final character, so it blurs in and out
      with the word instead of sitting static beside it */
   var TAIL = '?';
@@ -1470,10 +1633,12 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   }
 
   var chars = [], f = 0, wordIndex = 0, raf = 0, last = 0;
-  var exitDone = 0, cycleEnd = 0;
-  var widths = {};
+  var exitDone = 0, cycleEnd = 0, enterDone = 0;
+  var isFinal = false, finished = false;
+  var cycleWidth = 0;
 
-  function build(word) {
+  function build(word, final) {
+    isFinal = !!final;
     host.textContent = '';
     chars = (word + TAIL).split('').map(function (c) {
       var s = document.createElement('span');
@@ -1486,33 +1651,33 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
     /* pad the hold so every word gets the same 2s fully-visible window,
        whatever its length */
     hold = HOLD_STILL + (chars.length - 1) * STAGGER;
-    exitDone = (chars.length - 1) * STAGGER + ENTER + hold + EXIT;
+    enterDone = (chars.length - 1) * STAGGER + ENTER;
+    exitDone = enterDone + hold + EXIT;
     cycleEnd = exitDone + SETTLE;
   }
 
-  /* The slot is locked to the WIDEST word. The headline is centred, so
-     a slot that resized per word would change the line's total width
-     and shove "How can I help with" left and right on every swap.
-     A fixed slot keeps the line width constant, so the static half of
-     the sentence never moves and the gap after "with" never changes —
-     only the animated characters do.                                */
+  /* The slot is sized to the FINAL word, GRC.
+     The headline is centred, so the line's layout width decides where
+     the sentence sits. Sizing the slot to GRC means the resting state
+     — the one on screen almost all the time — is perfectly centred,
+     and because the width never changes the prefix never moves.
+     The longer cycling words simply overflow the slot to the right,
+     which is the trade the design accepts.                          */
   function measure() {
     var probe = document.createElement('span');
     probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre';
     probe.style.font = window.getComputedStyle(host).font;
     document.body.appendChild(probe);
-    var max = 0;
-    WORDS.forEach(function (w) {
-      probe.textContent = w + TAIL;
-      var px = probe.getBoundingClientRect().width;
-      widths[w] = Math.ceil(px);
-      if (px > max) max = px;
-    });
+    probe.textContent = FINAL + TAIL;
+    var fin = probe.getBoundingClientRect().width;
     probe.remove();
     /* +2px cushion: the per-character spans measure fractionally wider
-       than the same string as one run, so an exact fit can still wrap */
-    host.style.setProperty('--swap-w', (Math.ceil(max) + 2) + 'px');
+       than the same string as one run */
+    cycleWidth = Math.ceil(fin) + 2;
+    setWidth(cycleWidth);
   }
+
+  function setWidth(px) { host.style.setProperty('--swap-w', px + 'px'); }
 
   function tick(now) {
     /* advance by real elapsed time so "2 seconds" holds on 120Hz
@@ -1522,14 +1687,34 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
     last = now;
 
     var reduce = mqReduce.matches;
+    /* the final word never exits — a huge hold parks it at full opacity */
+    var thisHold = isFinal ? 1e9 : hold;
     for (var i = 0; i < chars.length; i++) {
-      var p = cyc(f, i * STAGGER, ENTER, hold, EXIT);
+      var p = cyc(f, i * STAGGER, ENTER, thisHold, EXIT);
       chars[i].style.opacity = p;
       if (!reduce) chars[i].style.filter = 'blur(' + ((1 - p) * MAX_BLUR).toFixed(2) + 'px)';
     }
-    if (f >= cycleEnd) {
-      wordIndex = (wordIndex + 1) % WORDS.length;
-      build(WORDS[wordIndex]);
+
+    if (isFinal) {
+      /* GRC is fully in — pin it and shut the loop down for good */
+      if (f >= enterDone) {
+        for (var j = 0; j < chars.length; j++) {
+          chars[j].style.opacity = 1;
+          chars[j].style.filter = 'none';
+        }
+        finished = true;
+        stop();
+        return;
+      }
+    } else if (f >= cycleEnd) {
+      wordIndex++;
+      if (wordIndex < WORDS.length) {
+        build(WORDS[wordIndex]);
+      } else {
+        /* the slot stays at the widest word — collapsing it to GRC's
+           width would re-centre the line and jump the static prefix */
+        build(FINAL, true);
+      }
       f = 0;
     }
     raf = requestAnimationFrame(tick);
@@ -1538,16 +1723,20 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   function start() { if (!raf) { last = 0; raf = requestAnimationFrame(tick); } }
   function stop()  { cancelAnimationFrame(raf); raf = 0; last = 0; }
 
-  /* no point animating a hidden tab */
-  function sync() { if (document.hidden) stop(); else start(); }
+  /* no point animating a hidden tab, and nothing to do once settled */
+  function sync() {
+    if (finished || document.hidden) stop();
+    else start();
+  }
 
   /* back to the first word, from frame zero */
   function restart() {
     stop();
     f = 0;
     wordIndex = 0;
+    finished = false;
     build(WORDS[0]);
-    measure();
+    measure();          /* isFinal is false again, so back to cycleWidth */
     start();
   }
 
@@ -1578,9 +1767,11 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   /* The card row is a single element that lives in one of two places:
      above the composer (Home) or inside the chatbox below it
      (Incident Response). Moving it beats duplicating the markup.   */
-  /* views that render the cards inside the chatbox */
+  /* Compliance Monitoring renders the quick-action cards inside the
+     chatbox. Incident Response replaces them with the ideas container,
+     so it is deliberately NOT in here. */
   function inlineCards(view) {
-    return view === 'incident' || view === 'compliance';
+    return view === 'compliance';
   }
 
   function placeCards(view) {
@@ -1596,6 +1787,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   function setView(view) {
     frame.classList.toggle('mode-chat', view === 'chat');
     frame.classList.toggle('mode-cards', inlineCards(view));
+    frame.classList.toggle('mode-ideas', view === 'incident');
     placeCards(view);
     for (var i = 0; i < rows.length; i++) {
       var on = rows[i].getAttribute('data-view') === view;
@@ -1623,19 +1815,46 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
     })(rows[i]);
   }
 
-  /* chips seed the prompt */
-  var chips = document.querySelectorAll('.chip');
-  for (var j = 0; j < chips.length; j++) {
-    (function (chip) {
-      chip.addEventListener('click', function () {
-        if (!input) return;
-        var label = chip.querySelector('.label');
-        input.value = label ? label.textContent.trim() : '';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.focus();
-      });
-    })(chips[j]);
+  /* ---- suggestions load into the prompt and activate it ----------
+     Idea cards, quick action cards and chips all behave the same way:
+     take their suggested prompt, drop it in the composer and focus it,
+     which puts the box into its active state. Delegated, so the card
+     row surviving a DOM move between views does not matter.        */
+  function seedPrompt(text) {
+    if (!input || !text) return;
+    input.value = text;
+    /* the input event drives has-text, which lights the send button */
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
+    try { input.setSelectionRange(text.length, text.length); } catch (err) {}
   }
+
+  /* the idea prompts are written with their quotation marks baked in */
+  function unquote(s) {
+    return s.replace(/^[\s"“‘]+/, '')
+            .replace(/[\s"”’]+$/, '')
+            .trim();
+  }
+
+  function pick(el, sel, strip) {
+    var t = el.querySelector(sel);
+    var s = t ? t.textContent : '';
+    return strip ? unquote(s) : s.trim();
+  }
+
+  document.addEventListener('click', function (e) {
+    var el = e.target;
+    if (!el || !el.closest) return;
+
+    var idea = el.closest('.idea');
+    if (idea) { seedPrompt(pick(idea, '.idea-prompt', true)); return; }
+
+    var chip = el.closest('.chip');
+    if (chip) { seedPrompt(pick(chip, '.label')); return; }
+
+    var card = el.closest('.card');
+    if (card) { seedPrompt(pick(card, '.card-title')); return; }
+  });
 })();
 
 /* ============================================================
