@@ -968,6 +968,259 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 
 /* ============================================================
+   Attention pane — "Your Diligent daily brief"
+   Incident Response only. Figma 11457:17618, 788 wide.
+   ============================================================ */
+/* With the pane present the page is taller than the viewport, so the
+   centring spacers on .page-body collapse to zero and the welcome
+   block ends up flush against the global header. Drop the spacers and
+   use the explicit top offset from the Figma frame instead (the input
+   box sits 97px into the 881px content area).                       */
+.frame.mode-brief .page-body::before,
+.frame.mode-brief .page-body::after{content:none;}
+.frame.mode-brief .content-inner{padding-top:97px;}
+
+.brief{display:none;}
+.frame.mode-brief .brief{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  margin-top:80px;      /* the pane opens 80px below the container */
+}
+.brief-heading{
+  margin:0;
+  font-size:20px;font-weight:600;line-height:24px;letter-spacing:0;
+  color:#242628;        /* Type/Default */
+}
+.brief-filter-wrap{
+  position:relative;
+  align-self:flex-start;
+  margin:12px 0;        /* 12 above and below -> list starts 12px later */
+}
+.brief-filter{
+  display:flex;align-items:center;
+  gap:0;
+  height:32px;
+  padding:0 4px;
+  border-radius:var(--radius-md);
+  color:var(--on-secondary);
+  transition:background-color .12s ease;
+}
+.brief-filter:hover{background:#f2f3f7;}
+.brief-filter .ico{width:20px;height:20px;}
+.brief-filter .label{
+  padding:0 4px;
+  font-size:14px;font-weight:500;line-height:20px;letter-spacing:0;
+  white-space:nowrap;
+}
+
+/* ---- filter dropdown (D1P_Discovery 5900:123966) ----------------- */
+.filter-menu{
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0;
+  z-index:60;
+  width:320px;
+  max-height:min(775px,72vh);
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  padding:20px;
+  background:var(--surface-default);
+  border:0;
+  border-radius:var(--radius-md);
+  box-shadow:var(--shadow-elevation-low);
+  overflow:hidden;
+}
+.filter-menu[hidden]{display:none;}
+.filter-scroll{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  display:flex;
+  flex-direction:column;
+  gap:8px;              /* between the Status and Source groups */
+}
+.filter-head{
+  padding:12px 0;
+  border-bottom:1px solid var(--divider-default);
+  font-size:12px;font-weight:600;line-height:16px;letter-spacing:0;
+  color:var(--on-secondary);
+}
+/* clickable list item — no trailing control. Selected state is the
+   Selection/Secondary fill plus the selection indicator bar.        */
+.filter-row{
+  position:relative;
+  display:flex;align-items:center;
+  height:44px;
+  padding:0 12px;                    /* List item/Density = 12 */
+  cursor:pointer;
+  font-size:14px;font-weight:400;line-height:20px;letter-spacing:0;
+  color:var(--on-secondary);
+  transition:background-color .12s ease;
+}
+/* no row hover is defined in Figma; a menu row needs one */
+.filter-row:hover{background:var(--surface-variant-subtle);}
+.filter-row input{position:absolute;opacity:0;width:0;height:0;}
+.filter-row.is-selected,
+.filter-row.is-selected:hover{
+  background:var(--nav-selected-bg);        /* Selection/Secondary/Default */
+}
+.filter-row.is-selected::before{
+  content:"";
+  position:absolute;
+  left:0;top:9px;bottom:9px;
+  width:2px;
+  border-radius:24px;
+  background:var(--nav-indicator);          /* Selection indicator */
+}
+.filter-row:focus-within{background:var(--surface-variant-subtle);}
+.filter-row:has(input:focus-visible){
+  box-shadow:inset 0 0 0 2px rgba(11,76,206,.35);
+}
+
+.filter-foot{
+  flex:none;
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:16px;
+  border-top:1px solid var(--divider-default);
+}
+.btn-reset,.btn-apply{
+  height:32px;
+  padding:0 8px;
+  border:0;
+  border-radius:var(--radius-md);
+  font-size:14px;font-weight:600;line-height:20px;letter-spacing:0;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.btn-reset{background:transparent;color:var(--on-secondary);transition:background-color .12s ease;}
+.btn-reset:hover{background:#f2f3f7;}
+.btn-apply{
+  color:var(--on-primary);
+  background:linear-gradient(180deg,var(--primary-grad-start) 0%,var(--primary-grad-end) 100%);
+}
+
+.brief-list{display:flex;flex-direction:column;gap:12px;}
+
+.brief-card{
+  display:flex;flex-direction:column;
+  gap:8px;
+  width:100%;
+  padding:12px 16px;
+  text-align:left;
+  background:var(--surface-default);
+  border:1px solid var(--card-outline);
+  border-radius:var(--radius-lg);
+  cursor:pointer;
+  transition:
+    border-color .18s var(--ease-soft),
+    box-shadow   .22s var(--ease-soft);
+}
+/* no hover state exists in Figma for these; this follows the
+   Clickable card pattern used by the idea cards */
+.brief-card:hover{
+  border-color:var(--outline-default);
+  box-shadow:var(--shadow-elevation-low);
+}
+
+.brief-meta{
+  display:flex;align-items:center;gap:12px;
+  width:100%;
+  min-height:32px;
+}
+.brief-src{
+  display:flex;align-items:center;gap:8px;
+  min-width:0;
+  color:var(--type-muted);
+}
+.brief-src .ico{width:20px;height:20px;}
+.brief-src span{
+  font-size:12px;font-weight:400;line-height:16px;letter-spacing:0;
+  color:var(--type-muted);
+  white-space:nowrap;
+}
+.brief-src b{font-weight:700;}
+
+/* Basic status indicator: 24 tall, pill, 2/8 padding, Label/Sm 500 */
+.badge{
+  display:inline-flex;align-items:center;
+  height:24px;
+  padding:2px 8px;
+  border:0;
+  border-radius:var(--radius-full);
+  font-size:12px;font-weight:500;line-height:16px;letter-spacing:0;
+  white-space:nowrap;
+}
+.badge-warning{background:#fcefc5;color:#715109;}   /* Accent/Yellow      */
+.badge-blue   {background:#e4f3ff;color:#004c6c;}   /* Accent/Blue        */
+.badge-green  {background:#e6f5f1;color:#16695b;}   /* Accent/Green       */
+.badge-danger {background:#f7e1df;color:#87222f;}   /* Accent/Highlighted */
+.badge-neutral{background:#eeeff5;color:#4c4e5a;}   /* Accent/Gray        */
+
+.brief-kebab{
+  margin-left:auto;
+  flex:none;
+  width:32px;height:32px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:var(--radius-md);
+  color:var(--on-secondary);
+  transition:background-color .12s ease;
+}
+.brief-kebab:hover{background:#f2f3f7;}
+.brief-kebab .ico{width:20px;height:20px;}
+
+.brief-body{display:flex;flex-direction:column;gap:4px;width:100%;}
+.brief-title-row{display:flex;align-items:center;gap:4px;min-width:0;}
+.brief-title{
+  margin:0;
+  font-size:14px;font-weight:600;line-height:20px;letter-spacing:0;
+  color:#242628;
+}
+.brief-title-row .ico{width:20px;height:20px;flex:none;color:var(--type-muted);}
+.brief-desc{
+  margin:0;
+  font-size:12px;font-weight:400;line-height:16px;letter-spacing:0;
+  color:var(--type-muted);
+}
+.brief-actions{
+  display:flex;justify-content:flex-end;align-items:flex-end;
+  width:100%;
+  padding-top:12px;
+}
+.btn-open{
+  height:24px;
+  padding:0 6px;          /* 4 root + 2 label inset */
+  background:transparent;
+  border:1px solid var(--outline-default);
+  border-radius:var(--radius-md);
+  font-size:12px;font-weight:500;line-height:16px;letter-spacing:0;
+  color:var(--on-secondary);
+  white-space:nowrap;
+  transition:background-color .12s ease;
+}
+.btn-open:hover{background:#f2f3f7;}
+
+.brief-more{
+  align-self:center;
+  display:flex;align-items:center;gap:0;
+  height:32px;
+  margin-top:12px;
+  padding:0 4px;
+  border-radius:var(--radius-md);
+  color:var(--on-secondary);
+  transition:background-color .12s ease;
+}
+.brief-more:hover{background:#f2f3f7;}
+.brief-more .label{
+  padding:0 4px;
+  font-size:14px;font-weight:500;line-height:20px;letter-spacing:0;
+  white-space:nowrap;
+}
+.brief-more .ico{width:24px;height:24px;}
+
+/* ============================================================
    Responsive
    ============================================================ */
 @media (max-width:1440px){
@@ -1082,6 +1335,10 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   <symbol id="i-description" viewBox="0 -960 960 960"><path d="M319-250h322v-60H319v60Zm0-170h322v-60H319v60ZM220-80q-24 0-42-18t-18-42v-680q0-24 18-42t42-18h361l219 219v521q0 24-18 42t-42 18H220Zm331-554v-186H220v680h520v-494H551ZM220-820v186-186 680-680Z"/></symbol>
   <symbol id="i-draft" viewBox="0 -960 960 960"><path d="M220-80q-24 0-42-18t-18-42v-680q0-24 18-42t42-18h361l219 219v521q0 24-18 42t-42 18H220Zm331-554v-186H220v680h520v-494H551ZM220-820v186-186 680-680Z"/></symbol>
   <symbol id="i-arrow-left-alt" viewBox="0 -960 960 960"><path d="M400-240 160-480l241-241 43 42-169 169h526v60H275l168 168-43 42Z"/></symbol>
+  <symbol id="i-more-vert" viewBox="0 -960 960 960"><path d="M479.86-160Q460-160 446-174.14t-14-34Q432-228 446.14-242t34-14Q500-256 514-241.86t14 34Q528-188 513.86-174t-34 14Zm0-272Q460-432 446-446.14t-14-34Q432-500 446.14-514t34-14Q500-528 514-513.86t14 34Q528-460 513.86-446t-34 14Zm0-272Q460-704 446-718.14t-14-34Q432-772 446.14-786t34-14Q500-800 514-785.86t14 34Q528-732 513.86-718t-34 14Z"/></symbol>
+  <symbol id="i-info" viewBox="0 -960 960 960"><path d="M453-280h60v-240h-60v240Zm50.5-323.2q9.5-9.2 9.5-22.8 0-14.45-9.48-24.22-9.48-9.78-23.5-9.78t-23.52 9.78Q447-640.45 447-626q0 13.6 9.48 22.8 9.48 9.2 23.5 9.2t23.52-9.2ZM480.27-80q-82.74 0-155.5-31.5Q252-143 197.5-197.5t-86-127.34Q80-397.68 80-480.5t31.5-155.66Q143-709 197.5-763t127.34-85.5Q397.68-880 480.5-880t155.66 31.5Q709-817 763-763t85.5 127Q880-563 880-480.27q0 82.74-31.5 155.5Q817-252 763-197.68q-54 54.31-127 86Q563-80 480.27-80Zm.23-60Q622-140 721-239.5t99-241Q820-622 721.19-721T480-820q-141 0-240.5 98.81T140-480q0 141 99.5 240.5t241 99.5Zm-.5-340Z"/></symbol>
+  <symbol id="i-person-play" viewBox="0 -960 960 960"><path d="M206-478 64-620l142-141 141 141-141 142ZM373-80v-212.68Q309-298 246-306.5T120-330l15-60q85.27 20 171.04 28.5 85.78 8.5 174.09 8.5 88.32 0 174.09-8.5Q740-370 825-390l15 60q-63 15-125.98 23.71Q651.03-297.58 587-293v213H373ZM206-561l58-59-58-58-59 58 59 59Zm196-171.12q-32-32.12-32-78T402.12-888q32.12-32 78-32T558-887.88q32 32.12 32 78T557.88-732q-32.12 32-78 32T402-732.12Zm26.5 296.7q-21.5-21.42-21.5-51.5t21.42-51.58q21.42-21.5 51.5-21.5t51.58 21.42q21.5 21.42 21.5 51.5t-21.42 51.58q-21.42 21.5-51.5 21.5t-51.58-21.42Zm87-338.9q14.5-14.33 14.5-35.5 0-21.18-14.32-35.68-14.33-14.5-35.5-14.5-21.18 0-35.68 14.32-14.5 14.33-14.5 35.5 0 21.18 14.32 35.68 14.33 14.5 35.5 14.5 21.18 0 35.68-14.32ZM698-490l-62-110 62.33-110H823l62 110-62.33 110H698Zm34.67-60H788l28-50-27.67-50H733l-28 50 27.67 50ZM206-620Zm274-190Zm281 210Z"/></symbol>
+  <symbol id="i-domain" viewBox="0 -960 960 960"><path d="M80-120v-720h390v165h410v555H80Zm60-60h105v-105H140v105Zm0-165h105v-105H140v105Zm0-165h105v-105H140v105Zm0-165h105v-105H140v105Zm165 495h105v-105H305v105Zm0-165h105v-105H305v105Zm0-165h105v-105H305v105Zm0-165h105v-105H305v105Zm165 495h350v-435H470v105h80v60h-80v105h80v60h-80v105Zm185-270v-60h60v60h-60Zm0 165v-60h60v60h-60Z"/></symbol>
 
   <!-- Diligent "D" mark -->
   <symbol id="i-diligent-d" viewBox="0 0 73 80">
@@ -1349,6 +1606,152 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
         <button class="ideas-more" type="button">
           <svg class="ico"><use href="#i-arrow-left-alt"/></svg>
           <span class="label">Browse the prompt library</span>
+        </button>
+      </section>
+
+      <!-- Incident Response only: attention pane -->
+      <section class="brief" id="brief">
+        <h2 class="brief-heading">Your Diligent daily brief</h2>
+
+        <div class="brief-filter-wrap" id="filterWrap">
+          <button class="brief-filter" id="filterBtn" type="button"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="filterMenu">
+            <svg class="ico"><use href="#i-tune"/></svg>
+            <span class="label">Filter by</span>
+            <svg class="ico"><use href="#i-expand-more"/></svg>
+          </button>
+
+          <div class="filter-menu" id="filterMenu" hidden>
+            <div class="filter-scroll">
+              <div role="group" aria-labelledby="fStatus">
+                <div class="filter-head" id="fStatus">Status</div>
+                <label class="filter-row"><input type="radio" name="fstatus" data-all checked><span>All</span></label>
+                <label class="filter-row"><input type="radio" name="fstatus"><span>Failed</span></label>
+                <label class="filter-row"><input type="radio" name="fstatus"><span>Due soon</span></label>
+                <label class="filter-row"><input type="radio" name="fstatus"><span>Needs input</span></label>
+                <label class="filter-row"><input type="radio" name="fstatus"><span>Ready for review</span></label>
+                <label class="filter-row"><input type="radio" name="fstatus"><span>Flagged</span></label>
+              </div>
+
+              <div role="group" aria-labelledby="fSource">
+                <div class="filter-head" id="fSource">Source</div>
+                <label class="filter-row"><input type="radio" name="fsource" data-all checked><span>All</span></label>
+                <label class="filter-row"><input type="radio" name="fsource"><span>Boards</span></label>
+                <label class="filter-row"><input type="radio" name="fsource"><span>BoardEffect</span></label>
+                <label class="filter-row"><input type="radio" name="fsource"><span>Entities</span></label>
+                <label class="filter-row"><input type="radio" name="fsource"><span>ERM</span></label>
+                <label class="filter-row"><input type="radio" name="fsource"><span>ESG</span></label>
+              </div>
+            </div>
+
+            <div class="filter-foot">
+              <button class="btn-reset" type="button">Reset</button>
+              <button class="btn-apply" type="button">Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="brief-list">
+          <article class="brief-card">
+            <div class="brief-meta">
+              <span class="brief-src"><svg class="ico"><use href="#i-person-play"/></svg><span><b>Boards</b> &middot; Jul 28 3:32 pm</span></span>
+              <span class="badge badge-warning">Deadline approaching</span>
+              <button class="brief-kebab" type="button" aria-label="More actions"><svg class="ico"><use href="#i-more-vert"/></svg></button>
+            </div>
+            <div class="brief-body">
+              <div class="brief-title-row">
+                <h3 class="brief-title">Board pack for the Aug 14 meeting is 60% complete</h3>
+                <svg class="ico"><use href="#i-info"/></svg>
+              </div>
+              <p class="brief-desc">Finance and Risk sections are still outstanding across three owners.</p>
+              <div class="brief-actions"><button class="btn-open" type="button">Open</button></div>
+            </div>
+          </article>
+
+          <article class="brief-card">
+            <div class="brief-meta">
+              <span class="brief-src"><svg class="ico"><use href="#i-domain"/></svg><span><b>Entities</b> &middot; Jul 27 6:52 am</span></span>
+              <span class="badge badge-warning">Deadline approaching</span>
+              <button class="brief-kebab" type="button" aria-label="More actions"><svg class="ico"><use href="#i-more-vert"/></svg></button>
+            </div>
+            <div class="brief-body">
+              <div class="brief-title-row">
+                <h3 class="brief-title">Confirmation statement due in 14 days</h3>
+                <svg class="ico"><use href="#i-info"/></svg>
+              </div>
+              <p class="brief-desc">Acme Holdings Ltd (UK) is due Aug 13, and its source data isn&rsquo;t validated.</p>
+              <div class="brief-actions"><button class="btn-open" type="button">Open</button></div>
+            </div>
+          </article>
+
+          <article class="brief-card">
+            <div class="brief-meta">
+              <span class="brief-src"><svg class="ico"><use href="#i-domain"/></svg><span><b>Entities</b> &middot; Jul 27 6:50 am</span></span>
+              <span class="badge badge-blue">Needs input</span>
+              <button class="brief-kebab" type="button" aria-label="More actions"><svg class="ico"><use href="#i-more-vert"/></svg></button>
+            </div>
+            <div class="brief-body">
+              <div class="brief-title-row">
+                <h3 class="brief-title">Director appointment needs a decision to continue</h3>
+                <svg class="ico"><use href="#i-info"/></svg>
+              </div>
+              <p class="brief-desc">J. Okafor&rsquo;s appointment is paused until you confirm the effective date.</p>
+              <div class="brief-actions"><button class="btn-open" type="button">Open</button></div>
+            </div>
+          </article>
+
+          <article class="brief-card">
+            <div class="brief-meta">
+              <span class="brief-src"><svg class="ico"><use href="#i-description"/></svg><span><b>Minutes</b> &middot; Jul 27 2:11 am</span></span>
+              <span class="badge badge-green">Ready for review</span>
+              <button class="brief-kebab" type="button" aria-label="More actions"><svg class="ico"><use href="#i-more-vert"/></svg></button>
+            </div>
+            <div class="brief-body">
+              <div class="brief-title-row">
+                <h3 class="brief-title">Draft minutes are ready for your review</h3>
+                <svg class="ico"><use href="#i-info"/></svg>
+              </div>
+              <p class="brief-desc">The agent drafted July Audit Committee minutes from the recording and pack.</p>
+              <div class="brief-actions"><button class="btn-open" type="button">Open</button></div>
+            </div>
+          </article>
+
+          <article class="brief-card">
+            <div class="brief-meta">
+              <span class="brief-src"><svg class="ico"><use href="#i-domain"/></svg><span><b>Entities</b> &middot; Jul 26 4:45 pm</span></span>
+              <span class="badge badge-danger">Failed</span>
+              <button class="brief-kebab" type="button" aria-label="More actions"><svg class="ico"><use href="#i-more-vert"/></svg></button>
+            </div>
+            <div class="brief-body">
+              <div class="brief-title-row">
+                <h3 class="brief-title">Annual return failed to file</h3>
+                <svg class="ico"><use href="#i-info"/></svg>
+              </div>
+              <p class="brief-desc">Meridian GmbH was rejected by the registry &mdash; a required document is missing.</p>
+              <div class="brief-actions"><button class="btn-open" type="button">Open</button></div>
+            </div>
+          </article>
+
+          <article class="brief-card">
+            <div class="brief-meta">
+              <span class="brief-src"><svg class="ico"><use href="#i-domain"/></svg><span><b>Entities</b> &middot; Jul 26 3:32 pm</span></span>
+              <span class="badge badge-neutral">New condition detected</span>
+              <button class="brief-kebab" type="button" aria-label="More actions"><svg class="ico"><use href="#i-more-vert"/></svg></button>
+            </div>
+            <div class="brief-body">
+              <div class="brief-title-row">
+                <h3 class="brief-title">New PSC rule will affect 5 UK entities</h3>
+                <svg class="ico"><use href="#i-info"/></svg>
+              </div>
+              <p class="brief-desc">A Companies House change on Sep 1 alters your confirmation-statement workflow.</p>
+              <div class="brief-actions"><button class="btn-open" type="button">Open</button></div>
+            </div>
+          </article>
+        </div>
+
+        <button class="brief-more" type="button">
+          <span class="label">Show more</span>
+          <svg class="ico"><use href="#i-expand-more"/></svg>
         </button>
       </section>
       </div><!-- /.page-body -->
@@ -1789,6 +2192,8 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
     frame.classList.toggle('mode-cards', inlineCards(view));
     /* Home now uses the Incident Response layout too */
     frame.classList.toggle('mode-ideas', view === 'incident' || view === 'home');
+    /* the attention pane is Incident Response only */
+    frame.classList.toggle('mode-brief', view === 'incident');
     placeCards(view);
     for (var i = 0; i < rows.length; i++) {
       var on = rows[i].getAttribute('data-view') === view;
@@ -1856,6 +2261,60 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
     var card = el.closest('.card');
     if (card) { seedPrompt(pick(card, '.card-title')); return; }
   });
+})();
+
+/* ============================================================
+   Filter dropdown — opens on the button, closes on Apply, on a
+   click outside, or on Escape.
+   ============================================================ */
+(function () {
+  var wrap = document.getElementById('filterWrap');
+  var btn  = document.getElementById('filterBtn');
+  var menu = document.getElementById('filterMenu');
+  if (!wrap || !btn || !menu) return;
+
+  function open()  { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); }
+  function close() { menu.hidden = true;  btn.setAttribute('aria-expanded', 'false'); }
+
+  btn.addEventListener('click', function (e) {
+    /* stop the document handler below from closing it in the same tick */
+    e.stopPropagation();
+    if (menu.hidden) open(); else close();
+  });
+
+  document.addEventListener('click', function (e) {
+    if (menu.hidden) return;
+    if (!wrap.contains(e.target)) close();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !menu.hidden) { close(); btn.focus(); }
+  });
+
+  /* the selected row carries the fill and the indicator bar, so the
+     class has to follow the radio rather than relying on :has() */
+  function paint() {
+    var rows = menu.querySelectorAll('.filter-row');
+    for (var i = 0; i < rows.length; i++) {
+      var input = rows[i].querySelector('input');
+      rows[i].classList.toggle('is-selected', !!(input && input.checked));
+    }
+  }
+  menu.addEventListener('change', paint);
+  paint();
+
+  var apply = menu.querySelector('.btn-apply');
+  var reset = menu.querySelector('.btn-reset');
+  if (apply) apply.addEventListener('click', function () { close(); btn.focus(); });
+  /* Reset returns both groups to All and leaves the menu open */
+  if (reset) reset.addEventListener('click', function () {
+    var alls = menu.querySelectorAll('input[data-all]');
+    for (var i = 0; i < alls.length; i++) alls[i].checked = true;
+    paint();
+  });
+
+  /* a view change unmounts nothing, so make sure it does not linger */
+  document.addEventListener('view:changed', close);
 })();
 
 /* ============================================================
