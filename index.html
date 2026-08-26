@@ -862,7 +862,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 
 /* ============================================================
-   Incident Response — narrow composer + a bordered ideas container
+   Home and Incident Response — narrow composer + ideas container
    Figma 11379:18266: composer 788 wide (176px gutters in the 1140
    content area), container 788 x 284 forty pixels below it.
    ============================================================ */
@@ -1102,7 +1102,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   </symbol>
 </defs></svg>
 
-<div class="frame" id="frame">
+<div class="frame mode-ideas" id="frame">
 
   <!-- ============ Global navigation ============ -->
   <header class="topbar">
@@ -1305,7 +1305,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
         </div>
       </section>
 
-      <!-- Incident Response only: prompt ideas in a bordered container -->
+      <!-- Home + Incident Response: prompt ideas in a bordered container -->
       <section class="ideas" id="ideas">
         <div class="ideas-head">
           <h2 class="ideas-title">Ideas to get you started</h2>
@@ -1787,7 +1787,8 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   function setView(view) {
     frame.classList.toggle('mode-chat', view === 'chat');
     frame.classList.toggle('mode-cards', inlineCards(view));
-    frame.classList.toggle('mode-ideas', view === 'incident');
+    /* Home now uses the Incident Response layout too */
+    frame.classList.toggle('mode-ideas', view === 'incident' || view === 'home');
     placeCards(view);
     for (var i = 0; i < rows.length; i++) {
       var on = rows[i].getAttribute('data-view') === view;
