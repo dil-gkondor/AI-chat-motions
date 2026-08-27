@@ -1220,6 +1220,34 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 }
 .brief-more .ico{width:24px;height:24px;}
 
+/* ---- empty state (Compliance Monitoring) ------------------------
+   The illustration is not present in the Figma node tree — the pane
+   contains only the heading and the label — so it is drawn here.   */
+.brief-empty{display:none;}
+.frame.mode-empty .brief-empty{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:28px;
+  padding:40px 0 24px;
+}
+/* the card list, filter and Show more have nothing to act on */
+.frame.mode-empty .brief-filter-wrap,
+.frame.mode-empty .brief-list,
+.frame.mode-empty .brief-more{display:none;}
+
+.brief-empty-art{
+  width:100%;
+  max-width:280px;      /* 400 - 30% */
+  height:auto;
+}
+.brief-empty-label{
+  margin:0;
+  font-size:20px;font-weight:600;line-height:24px;letter-spacing:0;
+  color:#242628;          /* same H3 Lg style as the pane heading */
+  text-align:center;
+}
+
 /* ============================================================
    Responsive
    ============================================================ */
@@ -1753,6 +1781,61 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
           <span class="label">Show more</span>
           <svg class="ico"><use href="#i-expand-more"/></svg>
         </button>
+
+        <!-- Compliance Monitoring: nothing to show -->
+        <div class="brief-empty" aria-live="polite">
+          <svg class="brief-empty-art" viewBox="0 0 804 658" role="img" aria-label="An empty inbox">
+            <!-- ground -->
+            <ellipse cx="397" cy="568" rx="348" ry="33" fill="#edeff9"/>
+
+            <!-- calendar -->
+            <path d="M122 90c0-16 16-16 16 0" fill="none" stroke="#c9cddf" stroke-width="3" stroke-linecap="round"/>
+            <path d="M244 90c0-16 16-16 16 0" fill="none" stroke="#c9cddf" stroke-width="3" stroke-linecap="round"/>
+            <rect x="88" y="88" width="194" height="152" rx="9" fill="#ffffff" stroke="#dfe2ed" stroke-width="1.6"/>
+            <path d="M88 121h194" stroke="#dfe2ed" stroke-width="1.6"/>
+            <g stroke="#edeff6" stroke-width="1.4">
+              <path d="M137 121v119M186 121v119M235 121v119"/>
+              <path d="M88 161h194M88 201h194"/>
+            </g>
+            <circle cx="211" cy="188" r="13" fill="#c4cbee"/>
+
+            <!-- sparkle -->
+            <path d="M457 17c2.6 21 7.4 26.4 28.4 29-21 2.6-25.8 8-28.4 29-2.6-21-7.4-26.4-28.4-29 21-2.6 25.8-8 28.4-29Z" fill="#e51f2d"/>
+
+            <!-- burst -->
+            <g stroke="#aab4ec" stroke-width="3.4" stroke-linecap="round">
+              <path d="M400 116v36"/>
+              <path d="M377 122l-8 29"/>
+              <path d="M423 122l8 29"/>
+            </g>
+
+            <!-- bell -->
+            <circle cx="628" cy="183" r="61" fill="#ffffff" stroke="#e0e3ee" stroke-width="1.6"/>
+            <path d="M624 154v-7" stroke="#9aa2bd" stroke-width="3.2" stroke-linecap="round"/>
+            <path d="M624 156a22 22 0 0 0-22 22c0 15-5 19-9 23h62c-4-4-9-8-9-23a22 22 0 0 0-22-22Z"
+                  fill="none" stroke="#9aa2bd" stroke-width="3.2" stroke-linejoin="round"/>
+            <path d="M613 205a11 11 0 0 0 22 0" fill="none" stroke="#9aa2bd" stroke-width="3.2" stroke-linecap="round"/>
+            <circle cx="657" cy="153" r="14" fill="#ef2130"/>
+
+            <!-- message -->
+            <rect x="248" y="205" width="282" height="133" rx="15" fill="#ffffff" stroke="#e0e3ee" stroke-width="1.6"/>
+            <circle cx="303" cy="269" r="28" fill="#bdc5f0"/>
+            <rect x="352" y="252" width="146" height="10" rx="5" fill="#d6dbf1"/>
+            <rect x="352" y="281" width="92" height="10" rx="5" fill="#e0e4f4"/>
+
+            <!-- tray interior, then the dashed drop, then the front panel -->
+            <path d="M205 378h395l40 72H163Z" fill="#eef0f8" stroke="#dfe2ed" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M396 348v120" stroke="#c6ccea" stroke-width="2.4" stroke-dasharray="9 9" stroke-linecap="round"/>
+            <path d="M163 450h129c8 0 10 8 16 16 4 5 8 6 14 6h148c6 0 10-1 14-6 6-8 8-16 16-16h140v93a14 14 0 0 1-14 14H177a14 14 0 0 1-14-14Z"
+                  fill="#ffffff" stroke="#dfe2ed" stroke-width="1.6" stroke-linejoin="round"/>
+
+            <!-- specks -->
+            <circle cx="72" cy="317" r="6" fill="#c4cbee"/>
+            <circle cx="695" cy="317" r="6" fill="#c4cbee"/>
+            <circle cx="657" cy="373" r="5" fill="#a9aebf"/>
+          </svg>
+          <p class="brief-empty-label">No tasks available</p>
+        </div>
       </section>
       </div><!-- /.page-body -->
 
@@ -2170,11 +2253,11 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   /* The card row is a single element that lives in one of two places:
      above the composer (Home) or inside the chatbox below it
      (Incident Response). Moving it beats duplicating the markup.   */
-  /* Compliance Monitoring renders the quick-action cards inside the
-     chatbox. Incident Response replaces them with the ideas container,
-     so it is deliberately NOT in here. */
+  /* No view renders the quick-action cards inside the chatbox any
+     more — Compliance moved to the ideas layout. The card row is kept
+     in the DOM (hidden) so the old arrangement is one line away. */
   function inlineCards(view) {
-    return view === 'compliance';
+    return false;
   }
 
   function placeCards(view) {
@@ -2190,10 +2273,12 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   function setView(view) {
     frame.classList.toggle('mode-chat', view === 'chat');
     frame.classList.toggle('mode-cards', inlineCards(view));
-    /* Home now uses the Incident Response layout too */
-    frame.classList.toggle('mode-ideas', view === 'incident' || view === 'home');
-    /* the attention pane is Incident Response only */
-    frame.classList.toggle('mode-brief', view === 'incident');
+    /* every view except New chat uses the narrow composer + ideas */
+    frame.classList.toggle('mode-ideas', view !== 'chat');
+    /* the attention pane appears on Incident Response and Compliance */
+    frame.classList.toggle('mode-brief', view === 'incident' || view === 'compliance');
+    /* ...but Compliance has nothing in it */
+    frame.classList.toggle('mode-empty', view === 'compliance');
     placeCards(view);
     for (var i = 0; i < rows.length; i++) {
       var on = rows[i].getAttribute('data-view') === view;
