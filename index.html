@@ -390,7 +390,8 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .content-inner{
   flex:1 0 auto;                      /* fills the viewport, then scrolls */
   width:100%;
-  max-width:var(--content-max);       /* 980 column + 2 x 80 gutter */
+  /* 788px composer everywhere, matching Incident Response */
+  max-width:calc(788px + 2 * var(--content-pad));
   margin:0 auto;
   padding:0 var(--content-pad) 40px;   /* Home: disclaimer 40px off the bottom */
   display:flex;
@@ -491,10 +492,8 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 .card-row{
   width:100%;
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(3,minmax(0,1fr));   /* three equal cards */
   gap:16px;
-  /* the elevation moved onto the individual cards — a per-card hover
-     state cannot come from a shadow on the container */
 }
 .card{
   min-width:0;
@@ -519,26 +518,17 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   transform:translateY(-1px);
   transition-duration:.09s;
 }
-/* the bordered 44px tile is gone — the header icon now sits bare */
-.card-tile{
-  width:20px;height:20px;flex:none;
-  display:flex;align-items:center;justify-content:center;
-  border:0;
-  background:none;
-  color:var(--primary-grad-start);
-}
-/* Gradient primary default, applied to the glyph itself */
-.card-tile .ico{fill:url(#grad-primary);}
-/* Title/H6 Xs - Emphasis (was H5 Sm at 16/24) */
+/* Title/H6 Xs - Emphasis: Inter 14/20 semibold */
 .card-title{
   margin:0;
   font-size:14px;font-weight:600;line-height:20px;letter-spacing:0;
   color:var(--on-secondary);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
 }
+/* Text/Body: Inter 14/20 regular, muted */
 .card-desc{
   margin:0;
-  font-size:12px;font-weight:400;line-height:16px;letter-spacing:0;
+  font-size:14px;font-weight:400;line-height:20px;letter-spacing:0;
   color:var(--type-muted);
 }
 
@@ -867,12 +857,8 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
    content area), container 788 x 284 forty pixels below it.
    ============================================================ */
 .ideas{display:none;}
-.frame.mode-ideas .card-row,
+/* cards now live in the chatbox here too, so only the chips are hidden */
 .frame.mode-ideas .chip-row{display:none;}
-/* narrow the whole column to the composer's 788px */
-.frame.mode-ideas .content-inner{
-  max-width:calc(788px + 2 * var(--content-pad));
-}
 .frame.mode-ideas .stage{flex:0 0 auto;padding:0;}
 .frame.mode-ideas .chatbox{margin-top:24px;}   /* Figma: 24, not 32 */
 .frame.mode-ideas .page-body::before{content:"";flex:1 0 0;}
@@ -1387,7 +1373,7 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   </symbol>
 </defs></svg>
 
-<div class="frame mode-ideas" id="frame">
+<div class="frame mode-cards" id="frame">
 
   <!-- ============ Global navigation ============ -->
   <header class="topbar">
@@ -1514,27 +1500,18 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
 
       <section class="card-row">
         <button class="card">
-          <span class="card-tile"><svg class="ico ico-md"><use href="#i-account-circle"/></svg></span>
           <h2 class="card-title">Appoint a director</h2>
           <p class="card-desc">Review director profiles, and draft appointment resolutions.</p>
         </button>
 
         <button class="card">
-          <span class="card-tile"><svg class="ico ico-md"><use href="#i-flowsheet"/></svg></span>
           <h2 class="card-title">Board resolution</h2>
           <p class="card-desc">Draft and execute resolutions with audit trail and e-signatures.</p>
         </button>
 
         <button class="card">
-          <span class="card-tile"><svg class="ico ico-md"><use href="#i-show-chart"/></svg></span>
           <h2 class="card-title">Analyze data</h2>
           <p class="card-desc">Surface risks across filings, and governance documents.</p>
-        </button>
-
-        <button class="card">
-          <span class="card-tile"><svg class="ico ico-md"><use href="#i-checklist-rtl"/></svg></span>
-          <h2 class="card-title">Summarize</h2>
-          <p class="card-desc">Condense board packs and proxy statements into concise briefs.</p>
         </button>
       </section>
 
@@ -2253,11 +2230,10 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   /* The card row is a single element that lives in one of two places:
      above the composer (Home) or inside the chatbox below it
      (Incident Response). Moving it beats duplicating the markup.   */
-  /* No view renders the quick-action cards inside the chatbox any
-     more — Compliance moved to the ideas layout. The card row is kept
-     in the DOM (hidden) so the old arrangement is one line away. */
+  /* Every view renders the three quick-action cards inside the
+     chatbox, under the composer. */
   function inlineCards(view) {
-    return false;
+    return true;
   }
 
   function placeCards(view) {
@@ -2271,10 +2247,12 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
   }
 
   function setView(view) {
-    frame.classList.toggle('mode-chat', view === 'chat');
-    frame.classList.toggle('mode-cards', inlineCards(view));
-    /* every view except New chat uses the narrow composer + ideas */
-    frame.classList.toggle('mode-ideas', view !== 'chat');
+    /* the 3-card chatbox is now the standard on every view; chips retired */
+    frame.classList.toggle('mode-chat', false);
+    frame.classList.toggle('mode-cards', true);
+    /* the ideas container is retired on every view; the markup stays
+       in the DOM (hidden) so it is one line away if needed again */
+    frame.classList.toggle('mode-ideas', false);
     /* the attention pane appears on Incident Response and Compliance */
     frame.classList.toggle('mode-brief', view === 'incident' || view === 'compliance');
     /* ...but Compliance has nothing in it */
@@ -2305,6 +2283,11 @@ button{font:inherit;color:inherit;background:none;border:0;margin:0;padding:0;cu
       });
     })(rows[i]);
   }
+
+  /* Home is the landing view — place its cards inside the chatbox on
+     load. placeCards() only runs on navigation otherwise, so without
+     this the row would stay in the stage on first paint. */
+  placeCards('home');
 
   /* ---- suggestions load into the prompt and activate it ----------
      Idea cards, quick action cards and chips all behave the same way:
